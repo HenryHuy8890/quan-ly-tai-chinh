@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Infographic: Tài Chính Gia Đình Nhà Voi (Tháng 10/2025)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #f4f7f6;
+            color: #073B4C;
+        }
+
+        .chart-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-left: auto;
+            margin-right: auto;
+            height: 300px;
+            max-height: 400px;
+        }
+
+        @media (min-width: 768px) {
+            .chart-container {
+                height: 400px;
+            }
+        }
+
+        h1, h2, h3 {
+            color: #073B4C;
+            font-weight: 700;
+        }
+        
+        .kpi-card {
+            background-color: #ffffff;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+        }
+        .kpi-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        
+        .kpi-title {
+            font-size: 1rem;
+            font-weight: 600;
+            color: #118AB2;
+        }
+        
+        .kpi-value {
+            font-size: 2.25rem;
+            font-weight: 900;
+        }
+    </style>
+</head>
+<body class="antialiased">
+
+    <div class="container mx-auto p-4 md:p-8 max-w-7xl">
+        
+        <header class="text-center mb-12">
+            <h1 class="text-4xl md:text-5xl font-bold mb-4">Phân Tích Tài Chính Gia Đình Nhà Voi</h1>
+            <p class="text-xl text-gray-600">Tổng quan chi tiêu tháng 10 năm 2025</p>
+        </header>
+
+        <section id="kpis" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-center">Bức Tranh Toàn Cảnh 💰</h2>
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                
+                <div class="kpi-card text-center">
+                    <div class="kpi-title mb-2">✅ Tổng Thu Nhập</div>
+                    <div class="kpi-value text-[#06D6A0]">16.800.000 đ</div>
+                    <p class="text-sm text-gray-500 mt-2">Lương VK: 10.5M | Lương CK: 6.0M | Thưởng: 0.3M</p>
+                </div>
+                
+                <div class="kpi-card text-center">
+                    <div class="kpi-title mb-2">❌ Tổng Chi Tiêu</div>
+                    <div class="kpi-value text-[#FF6B6B]">17.849.800 đ</div>
+                    <p class="text-sm text-gray-500 mt-2">Vượt thu nhập 1.049.800 đ</p>
+                </div>
+                
+                <div class="kpi-card text-center bg-[#073B4C] text-white">
+                    <div class="kpi-title mb-2 text-white/90">📉 Dòng Tiền Ròng (Thu - Chi)</div>
+                    <div class="kpi-value text-[#FF6B6B]">-1.049.800 đ</div>
+                    <p class="text-sm text-white/70 mt-2">Số dư cuối kỳ: -1.436.726 đ</p>
+                </div>
+            </div>
+            <p class="text-center text-lg text-gray-700 mt-8">
+                Gia đình đang ở trong tình trạng <span class="font-bold text-[#FF6B6B]">bội chi</span>. Mức chi tiêu vượt thu nhập hơn 1 triệu đồng, đây là tín hiệu cần điều chỉnh ngay.
+            </p>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+
+        <section id="spending-structure" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-center">Chi Tiêu Đang Đi Đâu?</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h3 class="text-2xl font-bold mb-4 text-center">Cơ Cấu Chi Tiêu (Hạng Mục Cha)</h3>
+                    <div class="chart-container" style="max-width: 450px; height: 350px; max-height: 400px;">
+                        <canvas id="donutChart"></canvas>
+                    </div>
+                </div>
+                <div class="text-lg text-gray-700 space-y-4 px-4">
+                    <p>Phân tích cho thấy chi tiêu của gia đình tập trung vào 4 nhóm chính. Không có gì ngạc nhiên khi <span class="font-bold text-[#118AB2]">"Dịch vụ Sinh hoạt"</span> chiếm tỷ trọng lớn nhất (60.3%).</p>
+                    <p>Điều đáng chú ý là <span class="font-bold text-[#06D6A0]">"Con cái"</span> cũng chiếm một phần đáng kể (23.5%), phản ánh đúng thực tế của gia đình có con nhỏ.</p>
+                    <p>Hơn 83% chi tiêu dành cho các nhu cầu thiết yếu. Vấn đề không nằm ở cơ cấu, mà ở <span class="font-bold">quy mô</span> chi tiêu đang lớn hơn thu nhập.</p>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+
+        <section id="top-spending" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-center">Các Khoản "Nặng Ký" Nhất</h2>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 items-center">
+                <div class="text-lg text-gray-700 space-y-4 px-4 lg:order-last">
+                    <p>Đi sâu hơn, 7 hạng mục "con" này chiếm phần lớn tổng chi tiêu. <span class="font-bold text-[#118AB2]">"Ăn uống & Sinh hoạt"</span> (4.5M) là khoản chi lớn nhất.</p>
+                    <p>Đứng thứ hai là <span class="font-bold text-[#118AB2]">"Cá nhân, lặt vặt"</span> (2.98M). Khoản này bao gồm 1.6M tiền tiêu vặt của 2 vợ chồng và một khoản phạt 750k. Đây là một "điểm mù" lớn cần được kiểm soát.</p>
+                    <p>Chi phí cho <span class="font-bold text-[#118AB2]">"Đồ ăn dặm"</span> của Voi (2.36M) và <span class="font-bold text-[#118AB2]">"Hoá đơn"</span> (1.87M, với 1.49M tiền điện) cũng là những khoản chi cố định rất cao.</p>
+                </div>
+                <div class="bg-white rounded-lg shadow-md p-6 lg:order-first">
+                    <h3 class="text-2xl font-bold mb-4 text-center">Top 7 Hạng Mục Chi Tiêu "Con"</h3>
+                    <div class="chart-container" style="height: 450px; max-height: 500px;">
+                        <canvas id="barChart"></canvas>
+                    </div>
+                </div>
+            </div>
+        </section>
+        
+        <hr class="my-12 border-gray-300">
+
+        <section id="swot" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-center">Phân Tích SWOT Tài Chính Gia Đình</h2>
+            <p class="text-center text-lg text-gray-700 mb-8">Đây là cái nhìn chiến lược về tình hình tài chính hiện tại của gia đình.</p>
+            
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                
+                <div class="kpi-card border-l-4 border-[#06D6A0]">
+                    <h3 class="text-2xl font-bold mb-3 text-[#06D6A0]">S - Điểm Mạnh (Strengths)</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li>Có 2 nguồn thu nhập lương ổn định từ cả vợ và chồng.</li>
+                        <li>Theo dõi chi tiêu rất tốt và chi tiết (có dữ liệu để phân tích).</li>
+                        <li>Có khả năng tạo thêm thu nhập (Thưởng 300k).</li>
+                    </ul>
+                </div>
+
+                <div class="kpi-card border-l-4 border-[#FF6B6B]">
+                    <h3 class="text-2xl font-bold mb-3 text-[#FF6B6B]">W - Điểm Yếu (Weaknesses)</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li>Bội chi nặng (thâm hụt 1.05M/tháng).</li>
+                        <li>Chi tiêu "vô hình" cao: 1.6M "tiêu vặt 2vc" không được kiểm soát.</li>
+                        <li>Chi phí "Hưởng thụ" (1.35M) và "Hoá đơn" (1.49M tiền điện) ở mức cao.</li>
+                    </ul>
+                </div>
+
+                <div class="kpi-card border-l-4 border-[#FFD166]">
+                    <h3 class="text-2xl font-bold mb-3 text-[#FFD166]">O - Cơ Hội (Opportunities)</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li>Dễ dàng cắt giảm các khoản chi "mềm" như Hưởng thụ, Tiêu vặt.</li>
+                        <li>Có thể tối ưu hoá đơn điện qua rà soát thiết bị.</li>
+                        <li>Lên kế hoạch đi chợ/nấu ăn để giảm chi phí ăn ngoài, lặt vặt.</li>
+                    </ul>
+                </div>
+
+                <div class="kpi-card border-l-4 border-[#073B4C]">
+                    <h3 class="text-2xl font-bold mb-3 text-[#073B4C]">T - Thách Thức (Threats)</h3>
+                    <ul class="list-disc list-inside space-y-2 text-gray-700">
+                        <li>Nguy cơ rơi vào "vòng xoáy nợ" khi số dư âm đang tăng.</li>
+                        <li>Không có Quỹ Khẩn Cấp (khoản phạt 750k là minh chứng).</li>
+                        <li>Chi phí cho con cái (4.2M) sẽ tiếp tục tăng trong tương lai.</li>
+                    </ul>
+                </div>
+            </div>
+        </section>
+
+        <hr class="my-12 border-gray-300">
+        
+        <section id="action-plan" class="mb-12">
+            <h2 class="text-3xl font-bold mb-6 text-center">💡 Kế Hoạch Hành Động "Lật Ngược Tình Thế"</h2>
+            <p class="text-center text-lg text-gray-700 mb-8">Gia đình đã làm rất tốt việc ghi chép. Giờ là lúc hành động để cải thiện tình hình!</p>
+
+            <div class="bg-white rounded-lg shadow-md p-6 md:p-10 max-w-4xl mx-auto">
+                <div class="text-center mb-6">
+                    <span class="text-lg font-semibold text-gray-600">Mục tiêu tháng 11</span><br>
+                    <span class="text-3xl font-bold text-[#06D6A0]">Cần Tiết Kiệm Tối Thiểu 1.050.000 đ</span>
+                </div>
+                
+                <ol class="list-decimal list-inside space-y-6 text-lg text-gray-700">
+                    <li>
+                        <strong class="text-[#073B4C]">"Siết" Ngay 3 Hạng Mục "Dễ" Nhất (Tiết kiệm ~1.75M):</strong>
+                        <ul class="list-disc list-inside ml-6 mt-2 text-base space-y-1">
+                            <li><span class="font-semibold">Hưởng thụ (1.35M):</span> Đặt ngân sách mới <span class="font-bold text-[#FF6B6B]">tối đa 700.000 đ</span>.</li>
+                            <li><span class="font-semibold">Tiêu vặt 2vc (1.6M):</span> Đặt ngân sách mới <span class="font-bold text-[#FF6B6B]">tối đa 1.000.000 đ</span>.</li>
+                            <li><span class="font-semibold">Ăn uống & Sinh hoạt (4.5M):</span> Đặt ngân sách mới <span class="font-bold text-[#FF6B6B]">4.000.000 đ</span> (lên thực đơn tuần).</li>
+                        </ul>
+                    </li>
+                    
+                    <li>
+                        <strong class="text-[#073B4C]">Xây Dựng Quỹ Khẩn Cấp (Khẩn cấp!)</strong>
+                        <p class="text-base ml-6 mt-1">Khoản phạt 750k là một lời cảnh báo. Hãy dùng <span class="font-bold text-[#06D6A0]">~700.000 đ</span> dôi ra từ bước 1 để bắt đầu xây dựng Quỹ Khẩn Cấp (mục tiêu 10-15 triệu).</p>
+                    </li>
+
+                    <li>
+                        <strong class="text-[#073B4C]">Rà Soát Lại Các Khoản "Cứng"</strong>
+                        <ul class="list-disc list-inside ml-6 mt-2 text-base space-y-1">
+                            <li><span class="font-semibold">Tiền điện (1.49M):</span> Con số này rất cao. Rà soát lại các thiết bị (điều hoà, nóng lạnh).</li>
+                            <li><span class="font-semibold">Chi tiêu cho con (4.2M):</span> Tối ưu bằng cách mua bỉm/sữa theo combo lớn hoặc săn sale.</li>
+                        </ul>
+                    </li>
+                </ol>
+
+                <p class="text-center text-xl font-semibold text-gray-800 mt-10">
+                    Chúc Gia Đình nhà Voi sớm cân bằng lại tài chính và có một tháng 11 "dương" rực rỡ!
+                </p>
+            </div>
+        </section>
+
+    </div>
+
+    <footer class="text-center p-6 bg-gray-800 text-white mt-12">
+        <p>&copy; 2025 | Báo cáo tài chính được tạo cho Gia Đình nhà Voi.</p>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            const formatVND = (value) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+            
+            const getTooltipTitle = (tooltipItems) => {
+                const item = tooltipItems[0];
+                if (!item) return '';
+                let label = item.chart.data.labels[item.dataIndex];
+                if (Array.isArray(label)) {
+                    return label.join(' ');
+                }
+                return label;
+            };
+
+            const donutCtx = document.getElementById('donutChart')?.getContext('2d');
+            if (donutCtx) {
+                new Chart(donutCtx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: ['Dịch vụ sinh hoạt', 'Con cái', 'Quan hệ xã hội', 'Hưởng thụ'],
+                        datasets: [{
+                            label: 'Chi tiêu',
+                            data: [10760000, 4194800, 1541000, 1354000],
+                            backgroundColor: [
+                                '#118AB2',
+                                '#06D6A0',
+                                '#FFD166',
+                                '#FF6B6B'
+                            ],
+                            borderColor: '#ffffff',
+                            borderWidth: 2
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'bottom',
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: getTooltipTitle,
+                                    label: (context) => {
+                                        const label = context.label || '';
+                                        const value = context.raw || 0;
+                                        const total = context.chart.data.datasets[0].data.reduce((a, b) => a + b, 0);
+                                        const percentage = ((value / total) * 100).toFixed(1);
+                                        return `${label}: ${formatVND(value)} (${percentage}%)`;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            const barCtx = document.getElementById('barChart')?.getContext('2d');
+            if (barCtx) {
+                new Chart(barCtx, {
+                    type: 'bar',
+                    data: {
+                        labels: [
+                            ['Ăn uống &', 'sinh hoạt'],
+                            ['Cá nhân,', 'lặt vặt'],
+                            ['Đồ ăn dặm', '(cho Voi)'],
+                            ['Hoá đơn & dịch vụ', 'thiết yếu'],
+                            ['Quan hệ', '(Người thân)'],
+                            'Chi tiêu cho mẹ',
+                            ['Hưởng thụ', '(Ăn ngon)']
+                        ],
+                        datasets: [{
+                            label: 'Tổng Chi (VND)',
+                            data: [4522000, 2978000, 2361800, 1868000, 1382000, 1360000, 1354000],
+                            backgroundColor: '#118AB2',
+                            borderColor: '#073B4C',
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        indexAxis: 'y',
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                display: false
+                            },
+                            tooltip: {
+                                callbacks: {
+                                    title: getTooltipTitle,
+                                    label: (context) => formatVND(context.raw)
+                                }
+                            }
+                        },
+                        scales: {
+                            x: {
+                                ticks: {
+                                    callback: (value) => new Intl.NumberFormat('vi-VN', {
+                                        notation: 'compact',
+                                        maximumFractionDigits: 1
+                                    }).format(value)
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+        });
+    </script>
+
+</body>
+</html>
