@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Báo cáo Tài chính Tháng 11/2025</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    
+    <style>
+        body {
+            font-family: 'Be Vietnam Pro', sans-serif;
+            background-color: #f3f4f6;
+        }
+        .card-hover:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+        .gradient-text {
+            background: linear-gradient(to right, #2563eb, #7c3aed);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .animate-fade-in {
+            animation: fadeIn 0.8s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="text-gray-800">
+
+    <!-- Navigation / Header -->
+    <nav class="bg-white shadow-sm sticky top-0 z-50">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex justify-between h-16">
+                <div class="flex items-center">
+                    <i class="fa-solid fa-chart-pie text-blue-600 text-2xl mr-3"></i>
+                    <span class="font-bold text-xl tracking-tight text-gray-900">Quản Lý Tài Chính <span class="text-blue-600">Tháng 11</span></span>
+                </div>
+                <div class="flex items-center space-x-4">
+                    <span class="text-sm text-gray-500 hidden sm:block">Dữ liệu cập nhật: 30/11/2025</span>
+                    <button onclick="window.print()" class="p-2 rounded-full hover:bg-gray-100 text-gray-600" title="In báo cáo">
+                        <i class="fa-solid fa-print"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+        
+        <!-- Welcome Section -->
+        <div class="mb-8 animate-fade-in">
+            <h1 class="text-3xl font-bold mb-2">Tổng quan Tháng 11/2025</h1>
+            <p class="text-gray-600">Phân tích dòng tiền, thói quen chi tiêu và hiệu quả thực hiện kế hoạch.</p>
+        </div>
+
+        <!-- Summary Cards -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8 animate-fade-in">
+            <!-- Income Card -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-green-500 card-hover transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Tổng Thu Nhập</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mt-1">22.350.000 đ</h3>
+                        <p class="text-xs text-green-600 mt-2 flex items-center">
+                            <i class="fa-solid fa-arrow-trend-up mr-1"></i> Bao gồm lương & rút quỹ
+                        </p>
+                    </div>
+                    <div class="p-3 bg-green-50 rounded-full text-green-600">
+                        <i class="fa-solid fa-wallet text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Expense Card -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-red-500 card-hover transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Tổng Chi Tiêu</p>
+                        <h3 class="text-2xl font-bold text-gray-900 mt-1">21.078.710 đ</h3>
+                        <p class="text-xs text-red-600 mt-2 flex items-center">
+                            <i class="fa-solid fa-circle-exclamation mr-1"></i> Chiếm 94.3% thu nhập
+                        </p>
+                    </div>
+                    <div class="p-3 bg-red-50 rounded-full text-red-600">
+                        <i class="fa-solid fa-cart-shopping text-xl"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Balance Card -->
+            <div class="bg-white rounded-xl p-6 shadow-sm border-l-4 border-blue-500 card-hover transition-all duration-300">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-sm font-medium text-gray-500 uppercase">Thặng Dư (Số Dư)</p>
+                        <h3 class="text-2xl font-bold text-blue-600 mt-1">+ 1.271.290 đ</h3>
+                        <p class="text-xs text-blue-600 mt-2 flex items-center">
+                            <i class="fa-solid fa-piggy-bank mr-1"></i> Tỷ lệ tiết kiệm: 5.7%
+                        </p>
+                    </div>
+                    <div class="p-3 bg-blue-50 rounded-full text-blue-600">
+                        <i class="fa-solid fa-scale-balanced text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-8 animate-fade-in" style="animation-delay: 0.2s;">
+            <!-- Pie Chart: Expense Structure -->
+            <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-1">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 border-b pb-2">Cơ Cấu Chi Tiêu</h3>
+                <div class="relative h-64 w-full flex justify-center">
+                    <canvas id="expensePieChart"></canvas>
+                </div>
+                <div class="mt-4 text-sm text-gray-500 text-center italic">
+                    *Dịch vụ sinh hoạt chiếm tỷ trọng lớn nhất
+                </div>
+            </div>
+
+            <!-- Bar Chart: Weekly Spending -->
+            <div class="bg-white p-6 rounded-xl shadow-sm lg:col-span-2">
+                <div class="flex justify-between items-center mb-4 border-b pb-2">
+                    <h3 class="text-lg font-bold text-gray-800">Diễn Biến Chi Tiêu Theo Tuần</h3>
+                    <span class="text-xs font-semibold bg-yellow-100 text-yellow-800 px-2 py-1 rounded">Mục tiêu đi chợ: 600k/tuần</span>
+                </div>
+                <div class="relative h-64 w-full">
+                    <canvas id="weeklyBarChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis & Logic Section -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8 animate-fade-in" style="animation-delay: 0.4s;">
+            
+            <!-- Key Insights -->
+            <div class="bg-white p-6 rounded-xl shadow-sm">
+                <h3 class="text-lg font-bold text-gray-800 mb-4 flex items-center">
+                    <i class="fa-solid fa-magnifying-glass-chart text-indigo-600 mr-2"></i>
+                    Phân Tích Logic & Điểm Nhấn
+                </h3>
+                <div class="space-y-4">
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fa-solid fa-check-circle text-green-500 mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-bold text-gray-900">Kiểm soát thâm hụt thành công</h4>
+                            <p class="text-sm text-gray-600 mt-1">Khác với tháng 9 và 10 bị âm, tháng này bạn đã có thặng dư dương (+1.27tr). Dù biên độ còn mỏng nhưng là tín hiệu tích cực.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fa-solid fa-triangle-exclamation text-orange-500 mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-bold text-gray-900">Cảnh báo thanh khoản cuối tháng</h4>
+                            <p class="text-sm text-gray-600 mt-1">Ngày 28/11 phải rút Quỹ dự phòng 300k. Dù đúng nguyên tắc dùng quỹ, nhưng việc phải rút một khoản nhỏ sát kỳ lương cho thấy "bước đệm" tiền mặt hàng ngày hơi mỏng.</p>
+                        </div>
+                    </div>
+                    <div class="flex items-start">
+                        <div class="flex-shrink-0">
+                            <i class="fa-solid fa-basket-shopping text-blue-500 mt-1"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h4 class="text-sm font-bold text-gray-900">Chi phí ăn dặm & Con cái</h4>
+                            <p class="text-sm text-gray-600 mt-1">Đầu tư rất kỹ lưỡng (ghế xe đạp, áo gile, thực phẩm đa dạng). Đây là khoản chi ưu tiên và chính đáng, dự kiến sẽ tăng dần.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recommendation Box -->
+            <div class="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-xl shadow-sm text-white">
+                <h3 class="text-lg font-bold mb-4 flex items-center">
+                    <i class="fa-solid fa-lightbulb text-yellow-300 mr-2"></i>
+                    Khuyến Nghị Hành Động
+                </h3>
+                <ul class="space-y-4">
+                    <li class="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                        <span class="font-bold text-yellow-300 block mb-1">1. Giữ vững kỷ luật "Đi chợ 600k"</span>
+                        <span class="text-sm text-indigo-100">Đây là chốt chặn quan trọng nhất để kiểm soát nhóm "Dịch vụ sinh hoạt". Cố gắng không để các khoản lặt vặt phá vỡ hạn mức này.</span>
+                    </li>
+                    <li class="bg-white/10 p-3 rounded-lg backdrop-blur-sm">
+                        <span class="font-bold text-yellow-300 block mb-1">2. Tạo lớp đệm tiền mặt (Buffer)</span>
+                        <span class="text-sm text-indigo-100">Để tránh phải rút Quỹ dự phòng cho các khoản nhỏ (300k), hãy cố gắng duy trì số dư tối thiểu 500k-1tr trong tài khoản thanh toán.</span>
+                    </li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Top Transactions Table -->
+        <div class="bg-white rounded-xl shadow-sm overflow-hidden mb-8 animate-fade-in" style="animation-delay: 0.6s;">
+            <div class="px-6 py-4 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 class="text-lg font-bold text-gray-800">Giao dịch đáng chú ý</h3>
+                <span class="text-xs text-gray-500">Top 5 khoản chi lớn/bất thường</span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-sm text-left text-gray-500">
+                    <thead class="text-xs text-gray-700 uppercase bg-gray-50">
+                        <tr>
+                            <th scope="col" class="px-6 py-3">Ngày</th>
+                            <th scope="col" class="px-6 py-3">Hạng mục</th>
+                            <th scope="col" class="px-6 py-3">Diễn giải</th>
+                            <th scope="col" class="px-6 py-3 text-right">Số tiền</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4">30/11</td>
+                            <td class="px-6 py-4"><span class="bg-red-100 text-red-800 px-2 py-1 rounded-full text-xs">Y tế/Cho mẹ</span></td>
+                            <td class="px-6 py-4 font-medium text-gray-900">Thuốc sưng amidan & Tiêu vặt</td>
+                            <td class="px-6 py-4 text-right font-bold text-gray-900">1.157.000 đ</td>
+                        </tr>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4">10/11</td>
+                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded-full text-xs">Con cái</span></td>
+                            <td class="px-6 py-4 font-medium text-gray-900">Ghế ngồi xe đạp + Áo gile</td>
+                            <td class="px-6 py-4 text-right font-bold text-gray-900">464.000 đ</td>
+                        </tr>
+                         <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4">28/11</td>
+                            <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded-full text-xs">Tiền vào</span></td>
+                            <td class="px-6 py-4 font-medium text-blue-700">Rút quỹ dự phòng (Bù đắp)</td>
+                            <td class="px-6 py-4 text-right font-bold text-green-600">+ 300.000 đ</td>
+                        </tr>
+                        <tr class="bg-white border-b hover:bg-gray-50">
+                            <td class="px-6 py-4">09/11</td>
+                            <td class="px-6 py-4"><span class="bg-orange-100 text-orange-800 px-2 py-1 rounded-full text-xs">Sinh hoạt</span></td>
+                            <td class="px-6 py-4 font-medium text-gray-900">Đi chợ (Thịt bò, đồ ăn dặm...)</td>
+                            <td class="px-6 py-4 text-right font-bold text-gray-900">529.000 đ</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <footer class="text-center text-gray-500 text-sm py-6 border-t mt-8">
+            <p>© 2025 Báo cáo Tài chính Cá nhân. Generated by AI Assistant.</p>
+        </footer>
+
+    </main>
+
+    <!-- Script for Charts -->
+    <script>
+        // --- Dữ liệu (Mocked based on Analysis) ---
+        // Màu sắc chủ đạo
+        const colors = {
+            blue: '#3b82f6',
+            green: '#10b981',
+            red: '#ef4444',
+            yellow: '#f59e0b',
+            purple: '#8b5cf6',
+            gray: '#9ca3af'
+        };
+
+        // 1. Pie Chart Configuration
+        const ctxPie = document.getElementById('expensePieChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Dịch vụ sinh hoạt', 'Con cái', 'Quan hệ xã hội', 'Hưởng thụ', 'Sức khỏe & Khác'],
+                datasets: [{
+                    data: [10500000, 4200000, 3100000, 2100000, 1178710], // Ước tính từ dữ liệu
+                    backgroundColor: [colors.blue, colors.green, colors.yellow, colors.purple, colors.red],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { usePointStyle: true, padding: 20 }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                let value = context.raw;
+                                return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                            }
+                        }
+                    }
+                },
+                cutout: '70%'
+            }
+        });
+
+        // 2. Bar Chart Configuration (Weekly Trend)
+        const ctxBar = document.getElementById('weeklyBarChart').getContext('2d');
+        new Chart(ctxBar, {
+            type: 'bar',
+            data: {
+                labels: ['Tuần 1', 'Tuần 2', 'Tuần 3', 'Tuần 4'],
+                datasets: [
+                    {
+                        label: 'Thu Nhập',
+                        data: [9500000, 0, 0, 12850000],
+                        backgroundColor: '#dcfce7', // Light green
+                        borderColor: colors.green,
+                        borderWidth: 2,
+                        borderRadius: 4,
+                        borderSkipped: false
+                    },
+                    {
+                        label: 'Chi Tiêu',
+                        data: [5200000, 4800000, 5500000, 5578710],
+                        backgroundColor: '#fee2e2', // Light red
+                        borderColor: colors.red,
+                        borderWidth: 2,
+                        borderRadius: 4,
+                        borderSkipped: false
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: '#f3f4f6' },
+                        ticks: {
+                            callback: function(value) {
+                                return value / 1000000 + 'M';
+                            }
+                        }
+                    },
+                    x: {
+                        grid: { display: false }
+                    }
+                },
+                plugins: {
+                    tooltip: {
+                        mode: 'index',
+                        intersect: false,
+                        callbacks: {
+                            label: function(context) {
+                                let value = context.raw;
+                                return context.dataset.label + ': ' + new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+                            }
+                        }
+                    }
+                }
+            }
+        });
+    </script>
+</body>
+</html>
