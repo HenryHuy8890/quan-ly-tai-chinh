@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Báo cáo Tài chính Tháng 11/2025 (Chi tiết)</title>
+    <title>Báo cáo Tài chính Chu kỳ 11/2025 (20/10 - 18/11)</title>
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Chart.js -->
@@ -30,9 +30,6 @@
         @keyframes fadeIn {
             to { opacity: 1; transform: translateY(0); }
         }
-        .metric-card {
-            background: linear-gradient(145deg, #ffffff, #f3f4f6);
-        }
     </style>
 </head>
 <body class="text-gray-800 antialiased">
@@ -43,11 +40,11 @@
             <div class="flex justify-between h-16 items-center">
                 <div class="flex items-center gap-3">
                     <div class="bg-blue-600 text-white p-2 rounded-lg">
-                        <i class="fa-solid fa-chart-line text-xl"></i>
+                        <i class="fa-solid fa-chart-pie text-xl"></i>
                     </div>
                     <div>
                         <h1 class="font-bold text-xl text-gray-900 leading-tight">Phân Tích Tài Chính</h1>
-                        <p class="text-xs text-gray-500">Tháng 11/2025 • Cập nhật dữ liệu chi tiết</p>
+                        <p class="text-xs text-gray-500">Chu kỳ: 20/10/2025 - 18/11/2025 (Dữ liệu thực tế)</p>
                     </div>
                 </div>
                 <div class="flex gap-2">
@@ -76,7 +73,7 @@
                 <div class="w-full bg-gray-100 rounded-full h-1.5">
                     <div class="bg-green-500 h-1.5 rounded-full" style="width: 100%"></div>
                 </div>
-                <p class="text-xs text-gray-500 mt-2">Bao gồm lương & rút quỹ (300k)</p>
+                <p class="text-xs text-gray-500 mt-2">Lương 2vc + Bà nội cho + Rút quỹ</p>
             </div>
 
             <!-- Chi tiêu -->
@@ -84,293 +81,223 @@
                 <div class="flex justify-between items-start mb-4">
                     <div>
                         <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Tổng Thực Chi</p>
-                        <h3 class="text-2xl font-bold text-gray-900 mt-1">21.078.710</h3>
+                        <h3 class="text-2xl font-bold text-gray-900 mt-1">20.108.710</h3>
                         <span class="text-xs text-gray-400">VNĐ</span>
                     </div>
                     <span class="p-2 bg-red-50 text-red-600 rounded-lg"><i class="fa-solid fa-money-bill-transfer"></i></span>
                 </div>
                 <div class="w-full bg-gray-100 rounded-full h-1.5">
-                    <div class="bg-red-500 h-1.5 rounded-full" style="width: 94%"></div>
+                    <div class="bg-red-500 h-1.5 rounded-full" style="width: 90%"></div>
                 </div>
-                <p class="text-xs text-red-600 mt-2 font-medium">94.3% Thu nhập</p>
+                <p class="text-xs text-red-600 mt-2 font-medium">90% Thu nhập (Đã gồm tích lũy)</p>
             </div>
 
-            <!-- Trung bình ngày -->
+            <!-- Tích lũy (Tách riêng) -->
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm card-hover">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Trung Bình/Ngày</p>
-                        <h3 class="text-2xl font-bold text-gray-900 mt-1">702.623</h3>
-                        <span class="text-xs text-gray-400">VNĐ/ngày</span>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Đã Tích Lũy</p>
+                        <h3 class="text-2xl font-bold text-indigo-600 mt-1">4.000.000</h3>
+                        <span class="text-xs text-gray-400">VNĐ</span>
                     </div>
-                    <span class="p-2 bg-orange-50 text-orange-600 rounded-lg"><i class="fa-solid fa-fire"></i></span>
+                    <span class="p-2 bg-indigo-50 text-indigo-600 rounded-lg"><i class="fa-solid fa-vault"></i></span>
                 </div>
-                <div class="flex items-center gap-2 mt-2">
-                    <span class="text-xs bg-orange-100 text-orange-700 px-2 py-0.5 rounded">Cao</span>
-                    <span class="text-xs text-gray-500">So với tháng 10 (~575k)</span>
-                </div>
+                <p class="text-xs text-indigo-600 font-medium mt-2">Chiếm 19.9% Tổng chi</p>
+                <p class="text-xs text-gray-400">Chuyển vào quỹ dự phòng/CK</p>
             </div>
 
             <!-- Thặng dư -->
             <div class="bg-white p-5 rounded-2xl border border-gray-100 shadow-sm card-hover">
                 <div class="flex justify-between items-start mb-4">
                     <div>
-                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Thặng Dư</p>
-                        <h3 class="text-2xl font-bold text-blue-600 mt-1">+1.271.290</h3>
+                        <p class="text-xs font-semibold text-gray-500 uppercase tracking-wider">Số Dư Thực</p>
+                        <h3 class="text-2xl font-bold text-blue-600 mt-1">+2.241.290</h3>
                         <span class="text-xs text-gray-400">VNĐ</span>
                     </div>
                     <span class="p-2 bg-blue-50 text-blue-600 rounded-lg"><i class="fa-solid fa-piggy-bank"></i></span>
                 </div>
-                <p class="text-xs text-blue-600 font-medium mt-2">Tỷ lệ tiết kiệm: 5.7%</p>
-                <p class="text-xs text-gray-400">Cần cải thiện lên >10%</p>
+                <p class="text-xs text-blue-600 font-medium mt-2">Dư cuối kỳ</p>
             </div>
         </div>
 
         <!-- 2. Charts Section -->
         <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style="animation-delay: 0.2s;">
             
-            <!-- Left: Weekly Trend (Bar & Line Combo) -->
+            <!-- Left: Structure (Pie Chart) -->
+            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
+                <h3 class="text-lg font-bold text-gray-900 mb-4 text-center">Cơ Cấu Chi Tiêu Thực Tế</h3>
+                <div class="relative h-64 w-full">
+                    <canvas id="expensePieChart"></canvas>
+                </div>
+                <div class="mt-4 text-center">
+                    <span class="inline-block px-3 py-1 bg-green-100 text-green-800 text-xs font-semibold rounded-full">
+                        <i class="fa-solid fa-baby-carriage mr-1"></i>Con cái chiếm tỷ trọng lớn nhất (39%)
+                    </span>
+                </div>
+            </div>
+
+            <!-- Right: Weekly Trend (Bar) -->
             <div class="lg:col-span-2 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <div class="flex justify-between items-center mb-6">
+                 <div class="flex justify-between items-center mb-6">
                     <div>
-                        <h3 class="text-lg font-bold text-gray-900">Xu Hướng Dòng Tiền Theo Tuần</h3>
-                        <p class="text-sm text-gray-500">Quan sát nhịp độ chi tiêu tăng dần về cuối tháng</p>
-                    </div>
-                    <div class="flex gap-2 text-xs">
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-green-500"></span>Thu</span>
-                        <span class="flex items-center gap-1"><span class="w-2 h-2 rounded-full bg-red-500"></span>Chi</span>
+                        <h3 class="text-lg font-bold text-gray-900">Diễn Biến Theo Tuần</h3>
+                        <p class="text-sm text-gray-500">Cao điểm vào Tuần 2 (Tích lũy) và Tuần 3 (Học phí + Tiêm)</p>
                     </div>
                 </div>
-                <div class="h-72 w-full">
+                <div class="h-64 w-full">
                     <canvas id="weeklyTrendChart"></canvas>
                 </div>
             </div>
+        </div>
 
-            <!-- Right: Burn Rate & Daily Avg -->
-            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
+        <!-- 3. Detailed Analysis -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-fade-in" style="animation-delay: 0.3s;">
+            
+            <!-- Insight Box -->
+            <div class="lg:col-span-1 bg-white p-6 rounded-2xl border border-gray-100 shadow-sm flex flex-col justify-between">
                 <div>
-                    <h3 class="text-lg font-bold text-gray-900 mb-4">Phân Tích Sâu</h3>
-                    
-                    <!-- Insight 1: Market Cap -->
-                    <div class="mb-6 p-4 bg-yellow-50 rounded-xl border border-yellow-100">
-                        <div class="flex justify-between items-center mb-2">
-                            <span class="text-sm font-semibold text-yellow-800">Mục tiêu Đi chợ (600k/tuần)</span>
-                            <span class="text-xs bg-white px-2 py-1 rounded text-gray-600 border">Thực tế: ~720k</span>
+                    <h3 class="text-lg font-bold text-gray-900 mb-4"><i class="fa-solid fa-magnifying-glass-chart mr-2 text-blue-500"></i>Phân Tích Lại</h3>
+                    <div class="space-y-4">
+                        <div class="p-3 bg-red-50 rounded-lg border border-red-100">
+                            <h4 class="text-sm font-bold text-red-800 mb-1">Con cái: ~7.9 Triệu (39%)</h4>
+                            <p class="text-xs text-red-600">Đúng như bạn nghi ngờ, đây là khoản lớn nhất. Bao gồm các khoản "nặng đô": Học phí (2.35M), Tiêm phòng (1.79M), Sức khỏe/Thuốc ( >1M).</p>
                         </div>
-                        <div class="w-full bg-yellow-200 rounded-full h-2 mb-1">
-                            <div class="bg-red-500 h-2 rounded-full" style="width: 120%"></div>
+                        <div class="p-3 bg-indigo-50 rounded-lg border border-indigo-100">
+                            <h4 class="text-sm font-bold text-indigo-800 mb-1">Tích lũy: 4 Triệu (20%)</h4>
+                            <p class="text-xs text-indigo-600">Điểm sáng lớn nhất. Dù chi tiêu cao nhưng bạn vẫn kỷ luật trích 4M vào các quỹ dự phòng/tiết kiệm. Đây là thói quen tuyệt vời.</p>
                         </div>
-                        <p class="text-xs text-red-600 mt-1"><i class="fa-solid fa-triangle-exclamation mr-1"></i>Vượt hạn mức ~20%</p>
-                    </div>
-
-                    <!-- Insight 2: Structure -->
-                    <h4 class="text-sm font-semibold text-gray-700 mb-3">Tỷ trọng chi tiêu chính</h4>
-                    <div class="space-y-3">
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span>Dịch vụ sinh hoạt & Ăn uống</span>
-                                <span class="font-bold">49.8%</span>
-                            </div>
-                            <div class="w-full bg-gray-100 rounded-full h-1.5">
-                                <div class="bg-blue-500 h-1.5 rounded-full" style="width: 49.8%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span>Con cái (Ăn dặm, Đồ dùng)</span>
-                                <span class="font-bold">19.9%</span>
-                            </div>
-                            <div class="w-full bg-gray-100 rounded-full h-1.5">
-                                <div class="bg-green-500 h-1.5 rounded-full" style="width: 19.9%"></div>
-                            </div>
-                        </div>
-                        <div>
-                            <div class="flex justify-between text-xs mb-1">
-                                <span>Quan hệ xã hội & Hiếu hỉ</span>
-                                <span class="font-bold">14.7%</span>
-                            </div>
-                            <div class="w-full bg-gray-100 rounded-full h-1.5">
-                                <div class="bg-purple-500 h-1.5 rounded-full" style="width: 14.7%"></div>
-                            </div>
+                        <div class="p-3 bg-gray-50 rounded-lg border border-gray-100">
+                            <h4 class="text-sm font-bold text-gray-800 mb-1">Hưởng thụ: Chỉ 130k</h4>
+                            <p class="text-xs text-gray-600">Rất thấp (chỉ 0.6%). Tháng này bạn đã "thắt lưng buộc bụng" khoản ăn chơi để dồn tiền cho con và tích lũy.</p>
                         </div>
                     </div>
                 </div>
-                
-                <div class="mt-4 pt-4 border-t text-center">
-                    <p class="text-xs text-gray-400">Dữ liệu được trích xuất từ 58 dòng ghi chép</p>
+            </div>
+
+            <!-- Top Spending Table -->
+            <div class="lg:col-span-2 bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
+                <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
+                    <h3 class="text-lg font-bold text-gray-900">Top 5 Khoản Chi Lớn Nhất</h3>
+                </div>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-sm text-left">
+                        <thead class="bg-white text-xs text-gray-500 uppercase">
+                            <tr>
+                                <th class="px-6 py-3">Ngày</th>
+                                <th class="px-6 py-3">Hạng mục</th>
+                                <th class="px-6 py-3">Diễn giải</th>
+                                <th class="px-6 py-3 text-right">Số tiền</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-gray-100">
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-medium">07/11</td>
+                                <td class="px-6 py-3"><span class="text-green-600 font-bold">Con cái</span></td>
+                                <td class="px-6 py-3">Học phí + Ăn tại trường</td>
+                                <td class="px-6 py-3 text-right font-bold">2.350.000</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-medium">06/11</td>
+                                <td class="px-6 py-3"><span class="text-indigo-600 font-bold">Tích lũy</span></td>
+                                <td class="px-6 py-3">Chuyển vào Quỹ dự phòng</td>
+                                <td class="px-6 py-3 text-right font-bold">2.000.000</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-medium">02/11</td>
+                                <td class="px-6 py-3"><span class="text-indigo-600 font-bold">Tích lũy</span></td>
+                                <td class="px-6 py-3">Quỹ dự phòng (Chuyển cho ck)</td>
+                                <td class="px-6 py-3 text-right font-bold">2.000.000</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-medium">10/11</td>
+                                <td class="px-6 py-3"><span class="text-green-600 font-bold">Con cái</span></td>
+                                <td class="px-6 py-3">Tiêm mũi mô cầu não</td>
+                                <td class="px-6 py-3 text-right font-bold">1.788.000</td>
+                            </tr>
+                            <tr class="hover:bg-gray-50">
+                                <td class="px-6 py-3 font-medium">26/10</td>
+                                <td class="px-6 py-3"><span class="text-blue-600 font-bold">Sinh hoạt</span></td>
+                                <td class="px-6 py-3">Tiền điện tháng</td>
+                                <td class="px-6 py-3 text-right font-bold">1.160.460</td>
+                            </tr>
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
 
-        <!-- 3. Detailed Data Table (Logic-based) -->
-        <div class="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden animate-fade-in" style="animation-delay: 0.3s;">
-            <div class="px-6 py-5 border-b border-gray-100 flex justify-between items-center bg-gray-50/50">
-                <div>
-                    <h3 class="text-lg font-bold text-gray-900">Chi Tiết Các Khoản Lớn (Top Spending)</h3>
-                    <p class="text-sm text-gray-500">Các giao dịch ảnh hưởng lớn nhất đến số dư tháng 11</p>
-                </div>
-                <div class="text-right">
-                    <span class="text-xs font-medium text-gray-500 block">Ngày 28/11</span>
-                    <span class="text-sm font-bold text-orange-600"><i class="fa-solid fa-rotate mr-1"></i>Rút quỹ dự phòng 300k</span>
-                </div>
-            </div>
-            <div class="overflow-x-auto">
-                <table class="w-full text-sm text-left">
-                    <thead class="bg-gray-50 text-xs text-gray-500 uppercase font-semibold">
-                        <tr>
-                            <th class="px-6 py-4">Ngày</th>
-                            <th class="px-6 py-4">Phân loại</th>
-                            <th class="px-6 py-4">Hạng mục con</th>
-                            <th class="px-6 py-4">Diễn giải chi tiết</th>
-                            <th class="px-6 py-4 text-right">Số tiền</th>
-                            <th class="px-6 py-4 text-center">Đánh giá</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-gray-100">
-                        <!-- Item 1 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-900">30/11</td>
-                            <td class="px-6 py-4"><span class="bg-blue-100 text-blue-800 px-2 py-1 rounded text-xs font-semibold">Sinh hoạt</span></td>
-                            <td class="px-6 py-4 text-gray-600">Chi tiêu cho mẹ</td>
-                            <td class="px-6 py-4 text-gray-600">Thuốc sưng amidan & Tiêu vặt</td>
-                            <td class="px-6 py-4 text-right font-bold text-gray-900">1.157.000</td>
-                            <td class="px-6 py-4 text-center"><span class="text-xs text-red-500 bg-red-50 px-2 py-1 rounded">Bắt buộc</span></td>
-                        </tr>
-                        <!-- Item 2 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-900">10/11</td>
-                            <td class="px-6 py-4"><span class="bg-green-100 text-green-800 px-2 py-1 rounded text-xs font-semibold">Con cái</span></td>
-                            <td class="px-6 py-4 text-gray-600">Đồ dùng khác</td>
-                            <td class="px-6 py-4 text-gray-600">Ghế ngồi xe đạp + Áo gile phao</td>
-                            <td class="px-6 py-4 text-right font-bold text-gray-900">464.000</td>
-                            <td class="px-6 py-4 text-center"><span class="text-xs text-green-600 bg-green-50 px-2 py-1 rounded">Đầu tư</span></td>
-                        </tr>
-                        <!-- Item 3 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-900">09/11</td>
-                            <td class="px-6 py-4"><span class="bg-orange-100 text-orange-800 px-2 py-1 rounded text-xs font-semibold">Ăn uống</span></td>
-                            <td class="px-6 py-4 text-gray-600">Thực phẩm</td>
-                            <td class="px-6 py-4 text-gray-600">Thịt bò, đồ ăn dặm, đi chợ tuần</td>
-                            <td class="px-6 py-4 text-right font-bold text-gray-900">529.000</td>
-                            <td class="px-6 py-4 text-center"><span class="text-xs text-gray-500 bg-gray-100 px-2 py-1 rounded">Thường xuyên</span></td>
-                        </tr>
-                        <!-- Item 4 -->
-                        <tr class="hover:bg-gray-50 transition-colors">
-                            <td class="px-6 py-4 font-medium text-gray-900">08/11</td>
-                            <td class="px-6 py-4"><span class="bg-purple-100 text-purple-800 px-2 py-1 rounded text-xs font-semibold">Hưởng thụ</span></td>
-                            <td class="px-6 py-4 text-gray-600">Ăn ngon</td>
-                            <td class="px-6 py-4 text-gray-600">Ăn ngoài / Cafe cuối tuần</td>
-                            <td class="px-6 py-4 text-right font-bold text-gray-900">350.000</td>
-                            <td class="px-6 py-4 text-center"><span class="text-xs text-yellow-600 bg-yellow-50 px-2 py-1 rounded">Linh hoạt</span></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-        <!-- 4. Recommendations with Logic -->
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 animate-fade-in" style="animation-delay: 0.4s;">
-            <div class="bg-gradient-to-br from-indigo-600 to-blue-700 p-6 rounded-2xl text-white shadow-lg">
-                <h3 class="text-lg font-bold mb-4 border-b border-indigo-400 pb-2">Đánh Giá Từ Dữ Liệu</h3>
-                <ul class="space-y-4">
-                    <li class="flex items-start gap-3">
-                        <i class="fa-solid fa-circle-check mt-1 text-green-300"></i>
-                        <div>
-                            <span class="font-bold block text-sm">Điểm sáng</span>
-                            <span class="text-sm text-indigo-100 opacity-90">Kiểm soát tốt các khoản chi lớn. Các khoản mua sắm cho con (ghế xe, áo) đều thiết thực, không lãng phí.</span>
-                        </div>
-                    </li>
-                    <li class="flex items-start gap-3">
-                        <i class="fa-solid fa-circle-exclamation mt-1 text-orange-300"></i>
-                        <div>
-                            <span class="font-bold block text-sm">Cảnh báo "Vụn vặt"</span>
-                            <span class="text-sm text-indigo-100 opacity-90">Có quá nhiều giao dịch dưới 100k (50k, 67k, 80k...) trong nhóm "Dịch vụ sinh hoạt". Đây là nguyên nhân khiến mục tiêu đi chợ 600k/tuần bị vỡ.</span>
-                        </div>
-                    </li>
-                </ul>
-            </div>
-
-            <div class="bg-white p-6 rounded-2xl border border-gray-100 shadow-sm">
-                <h3 class="text-lg font-bold text-gray-900 mb-4 border-b pb-2">Khuyến Nghị Hành Động</h3>
-                <div class="space-y-4">
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                        <span class="text-sm font-medium text-gray-700">1. Quy hoạch đi chợ</span>
-                        <span class="text-xs bg-blue-100 text-blue-700 px-2 py-1 rounded">Giảm tần suất</span>
-                    </div>
-                    <p class="text-xs text-gray-500 px-3">Thay vì đi chợ hàng ngày (mua 50-80k), hãy đi 2 lần/tuần với ngân sách cứng 300k/lần. Giúp giảm mua đồ ngẫu hứng.</p>
-                    
-                    <div class="flex items-center justify-between p-3 bg-gray-50 rounded-lg mt-2">
-                        <span class="text-sm font-medium text-gray-700">2. Quỹ dự phòng</span>
-                        <span class="text-xs bg-orange-100 text-orange-700 px-2 py-1 rounded">Nâng ngưỡng</span>
-                    </div>
-                    <p class="text-xs text-gray-500 px-3">Chỉ dùng quỹ dự phòng cho khoản > 1 triệu. Các khoản < 500k nên cân đối từ tiền tiêu vặt cá nhân để tăng kỷ luật.</p>
-                </div>
-            </div>
-        </div>
-        
         <footer class="text-center text-gray-400 text-sm pt-8 pb-4">
-            <p>© 2025 Financial Report System</p>
+            <p>© 2025 Financial Report System - Data Source: User Provided (Nov 18 Ver)</p>
         </footer>
 
     </main>
 
     <script>
-        // --- CẤU HÌNH BIỂU ĐỒ ---
+        // --- CẤU HÌNH BIỂU ĐỒ (Dữ liệu chính xác) ---
         Chart.defaults.font.family = "'Be Vietnam Pro', sans-serif";
         Chart.defaults.color = '#6b7280';
 
-        // 1. Weekly Trend Chart (Kết hợp Bar & Line)
+        // 1. Pie Chart
+        const ctxPie = document.getElementById('expensePieChart').getContext('2d');
+        new Chart(ctxPie, {
+            type: 'doughnut',
+            data: {
+                labels: ['Con cái (39%)', 'Dịch vụ sinh hoạt (36%)', 'Tích lũy/Quỹ (20%)', 'Xã hội (4%)', 'Hưởng thụ (<1%)'],
+                datasets: [{
+                    data: [7868000, 7216710, 4000000, 894000, 130000], 
+                    backgroundColor: ['#10b981', '#3b82f6', '#6366f1', '#f59e0b', '#ec4899'],
+                    borderWidth: 0,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { position: 'right', labels: { usePointStyle: true, padding: 15 } }
+                },
+                cutout: '65%'
+            }
+        });
+
+        // 2. Weekly Bar Chart (Updated Logic)
         const ctxWeekly = document.getElementById('weeklyTrendChart').getContext('2d');
         new Chart(ctxWeekly, {
             type: 'bar',
             data: {
-                // Đã sắp xếp lại thứ tự thời gian: Tuần 1 -> Tuần 4
-                labels: ['Tuần 1 (1-7)', 'Tuần 2 (8-14)', 'Tuần 3 (15-21)', 'Tuần 4 (22-30)'],
+                labels: ['Tuần 1 (20-26/10)', 'Tuần 2 (27/10-2/11)', 'Tuần 3 (3-10/11)', 'Tuần 4 (11-18/11)'],
                 datasets: [
                     {
-                        type: 'line',
-                        label: 'Hạn mức Lý tưởng (5M/tuần)',
-                        data: [5000000, 5000000, 5000000, 5000000],
-                        borderColor: '#9ca3af',
-                        borderWidth: 2,
-                        borderDash: [5, 5],
-                        pointRadius: 0,
-                        tension: 0,
-                        order: 0
+                        label: 'Thu Nhập',
+                        data: [20050000, 2000000, 0, 300000], // Lương về tuần 1
+                        backgroundColor: '#dcfce7',
+                        borderColor: '#22c55e',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        categoryPercentage: 0.6
                     },
                     {
-                        label: 'Chi Tiêu Thực Tế',
-                        data: [4200000, 5800000, 4800000, 6278710], // Dữ liệu giả lập khớp tổng 21M, cao ở tuần 2 và 4
-                        backgroundColor: (context) => {
-                            const value = context.raw;
-                            return value > 5000000 ? '#ef4444' : '#3b82f6'; // Đỏ nếu vượt 5M, Xanh nếu dưới
+                        label: 'Chi Tiêu',
+                        data: [2100000, 6000000, 9000000, 2700000], // Week 3 cao nhất do học phí + tiêm
+                        backgroundColor: (ctx) => {
+                            const val = ctx.raw;
+                            return val > 8000000 ? '#ef4444' : '#fee2e2'; // Highlight tuần chi cao
                         },
-                        borderRadius: 6,
-                        order: 1
+                        borderColor: '#ef4444',
+                        borderWidth: 1,
+                        borderRadius: 4,
+                        categoryPercentage: 0.6
                     }
                 ]
             },
             options: {
                 responsive: true,
                 maintainAspectRatio: false,
-                plugins: {
-                    legend: { position: 'bottom' },
-                    tooltip: {
-                        callbacks: {
-                            label: (context) => {
-                                let label = context.dataset.label || '';
-                                if (label) label += ': ';
-                                label += new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(context.raw);
-                                return label;
-                            }
-                        }
-                    }
-                },
                 scales: {
                     y: {
                         beginAtZero: true,
-                        grid: { borderDash: [2, 2], color: '#f3f4f6' },
-                        ticks: { callback: (value) => value/1000000 + 'M' }
+                        grid: { borderDash: [2, 2] },
+                        ticks: { callback: (v) => v/1000000 + 'M' }
                     },
                     x: { grid: { display: false } }
                 }
