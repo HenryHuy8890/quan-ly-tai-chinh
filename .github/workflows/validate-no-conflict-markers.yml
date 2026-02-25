@@ -1,0 +1,21 @@
+name: Validate Pages Files
+
+on:
+  pull_request:
+  push:
+    branches: [ main ]
+
+jobs:
+  no-conflict-markers:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Check for unresolved merge markers in HTML
+        run: |
+          if rg -n "^(<<<<<<<|=======|>>>>>>>)" --glob "*.html" --glob "**/*.html" .; then
+            echo "Found unresolved merge conflict markers in HTML files."
+            exit 1
+          fi
+          echo "OK: No unresolved merge markers found in HTML files."
