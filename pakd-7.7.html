@@ -49,6 +49,7 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        const PAKD77_STORAGE_KEY = "pakd77_history_v1";
         const { useState, useEffect, useRef } = React;
         const PAKD77_STORAGE_KEY = "pakd77_history_v1";
         const { useState, useEffect } = React;
@@ -144,6 +145,11 @@
         );
 
         const PAKD_App = () => {
+            const [products, setProducts] = React.useState([
+                { id: 1, name: 'Nhôm cuộn A3003-H14', specs: '2.0 x 1250 x C', unit: 'Cuộn', qtyUnit: 1, quantity: 2591, sellPrice: 101000, historicalCost: 91000, replacementCost: 110000, competitorPrice: 100000 }
+            ]);
+
+            const [inputs, setInputs] = React.useState({
             const [products, setProducts] = useState([
                 { id: 1, name: 'Nhôm cuộn A3003-H14', specs: '2.0 x 1250 x C', unit: 'Cuộn', qtyUnit: 1, quantity: 2591, sellPrice: 101000, historicalCost: 91000, replacementCost: 110000, competitorPrice: 100000 }
             ]);
@@ -159,6 +165,7 @@
                 termDelivery: '03 ngày kể từ khi nhận đặt cọc.', termTransport: 'Bên mua chịu trách nhiệm vận chuyển.', termLocation: 'Kho bên bán (KCN Nguyên Khê).'
             });
 
+            const [metrics, setMetrics] = React.useState({
             const [metrics, setMetrics] = useState({
                 revenue: 0, accountingProfit: 0, realProfit: 0, realMargin: 0,
                 sunkCost: 0, sunkCostRatio: 0, volumeChangeRatio: 0,
@@ -166,6 +173,10 @@
                 status: 'RED', recommendation: '', reason: '', warningLevel: '', competitorStatus: '', totalAdditionalCosts: 0
             });
 
+            const [printMode, setPrintMode] = React.useState(null);
+            const [savedRecords, setSavedRecords] = React.useState([]);
+            const [historyFilter, setHistoryFilter] = React.useState("");
+            const fileInputRef = React.useRef(null);
             const [printMode, setPrintMode] = useState(null);
             const [savedRecords, setSavedRecords] = useState([]);
             const [historyFilter, setHistoryFilter] = useState("");
@@ -178,6 +189,7 @@
             const removeProduct = (id) => { if (products.length > 1) setProducts(products.filter(p => p.id !== id)); };
             const updateProduct = (id, field, value) => { setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p)); };
 
+            React.useEffect(() => {
             useEffect(() => {
                 const { inventoryAge, interestRateYear, riskProvision, paymentDays, customerRank, costTransport, costProcessing, costPackaging } = inputs;
                 let totalRevenue = 0, totalCogsHistory = 0, totalReplacementCost = 0, totalCompetitorVal = 0, totalQuantity = 0;
@@ -233,6 +245,7 @@
                 setMetrics({ revenue: totalRevenue, accountingProfit, realProfit, realMargin, sunkCost, sunkCostRatio, volumeChangeRatio, avgSellPrice, avgHistoricalCost, avgReplacementCost, avgCompetitorPrice, status, recommendation, reason, warningLevel, competitorStatus, totalAdditionalCosts });
             }, [inputs, products]);
 
+            React.useEffect(() => {
             useEffect(() => {
                 const total = Math.round(metrics.revenue * 1.1);
                 if (total > 0 && inputs.amountInWords === '') {
@@ -249,6 +262,9 @@
 
             const handlePrintPAKD = () => { setPrintMode('pakd'); setTimeout(() => window.print(), 200); };
             const handlePrintQuote = () => { setPrintMode('quotation'); setTimeout(() => window.print(), 200); };
+            React.useEffect(() => { const handleAfterPrint = () => setPrintMode(null); window.addEventListener("afterprint", handleAfterPrint); return () => window.removeEventListener("afterprint", handleAfterPrint); }, []);
+
+            React.useEffect(() => {
             useEffect(() => { const handleAfterPrint = () => setPrintMode(null); window.addEventListener("afterprint", handleAfterPrint); return () => window.removeEventListener("afterprint", handleAfterPrint); }, []);
 
             useEffect(() => {
