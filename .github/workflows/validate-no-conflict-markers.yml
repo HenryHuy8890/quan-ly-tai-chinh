@@ -19,3 +19,11 @@ jobs:
             exit 1
           fi
           echo "OK: No unresolved merge markers found in HTML files."
+
+      - name: Check duplicate React hook destructuring risk in PAKD 7.7
+        run: |
+          if rg -n "const \{ useState, useEffect" pakd-7.7.html pakd-7.7/index.html; then
+            echo "Found risky hook destructuring declaration in PAKD 7.7 files."
+            exit 1
+          fi
+          echo "OK: No risky hook destructuring declaration found."
