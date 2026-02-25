@@ -1,228 +1,512 @@
 <!DOCTYPE html>
 <html lang="vi">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PAKD Offline - Lưu theo công ty</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-slate-50 text-slate-800">
-  <main class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
-    <header>
-      <h1 class="text-2xl md:text-3xl font-bold">PAKD Offline (không cần server)</h1>
-      <p class="text-sm text-slate-600 mt-1">Dữ liệu chỉ lưu trong trình duyệt bằng <code>localStorage</code>, không tốn chi phí dịch vụ ngoài.</p>
-    </header>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAKD BUY 3.0 - Multi-Product Sourcing</title>
+    
+    <!-- Libraries -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
-    <section class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-      <h2 class="font-semibold text-lg">1) Nhập thông tin phương án</h2>
-      <div class="grid md:grid-cols-2 gap-3">
-        <label class="text-sm">Tên công ty
-          <input id="companyName" class="mt-1 w-full border rounded px-3 py-2" placeholder="Ví dụ: CÔNG TY TNHH ABC" />
-        </label>
-        <label class="text-sm">Người đề xuất
-          <input id="senderName" class="mt-1 w-full border rounded px-3 py-2" placeholder="Nguyễn Văn A" />
-        </label>
-      </div>
-      <div class="grid md:grid-cols-3 gap-3">
-        <label class="text-sm">Doanh thu (VNĐ)
-          <input id="revenue" type="number" class="mt-1 w-full border rounded px-3 py-2" value="0" />
-        </label>
-        <label class="text-sm">Giá vốn + chi phí (VNĐ)
-          <input id="cost" type="number" class="mt-1 w-full border rounded px-3 py-2" value="0" />
-        </label>
-        <label class="text-sm">Ghi chú
-          <input id="note" class="mt-1 w-full border rounded px-3 py-2" placeholder="Điều kiện công nợ, tồn kho..." />
-        </label>
-      </div>
-      <div class="flex flex-wrap gap-2">
-        <button id="calcBtn" class="bg-blue-600 text-white rounded px-4 py-2">Tính nhanh</button>
-        <button id="saveBtn" class="bg-emerald-600 text-white rounded px-4 py-2">Lưu PAKD hiện tại</button>
-        <button id="exportBtn" class="bg-slate-700 text-white rounded px-4 py-2">Xuất backup JSON</button>
-        <label class="bg-amber-500 text-white rounded px-4 py-2 cursor-pointer">Nhập backup JSON
-          <input id="importInput" type="file" accept="application/json" class="hidden" />
-        </label>
-      </div>
-      <div id="result" class="text-sm bg-slate-50 border border-slate-200 rounded p-3"></div>
-      <p id="toast" class="text-sm font-medium"></p>
-    </section>
-
-    <section class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
-      <h2 class="font-semibold text-lg">2) Lịch sử PAKD theo tên công ty</h2>
-      <div class="flex gap-2">
-        <input id="filterCompany" class="flex-1 border rounded px-3 py-2" placeholder="Lọc theo công ty (để trống = tất cả)" />
-        <button id="refreshBtn" class="bg-slate-800 text-white rounded px-4 py-2">Lọc</button>
-      </div>
-      <div class="overflow-auto">
-        <table class="w-full text-sm border-collapse">
-          <thead>
-            <tr class="bg-slate-100">
-              <th class="border p-2 text-left">Ngày lưu</th>
-              <th class="border p-2 text-left">Công ty</th>
-              <th class="border p-2 text-right">Lợi nhuận</th>
-              <th class="border p-2 text-left">Người đề xuất</th>
-              <th class="border p-2 text-left">Thao tác</th>
-            </tr>
-          </thead>
-          <tbody id="historyBody"></tbody>
-        </table>
-      </div>
-    </section>
-  </main>
-
-  <script>
-    const STORAGE_KEY = 'pakd_history_v1';
-
-    const els = {
-      companyName: document.getElementById('companyName'),
-      senderName: document.getElementById('senderName'),
-      revenue: document.getElementById('revenue'),
-      cost: document.getElementById('cost'),
-      note: document.getElementById('note'),
-      result: document.getElementById('result'),
-      toast: document.getElementById('toast'),
-      historyBody: document.getElementById('historyBody'),
-      filterCompany: document.getElementById('filterCompany'),
-      importInput: document.getElementById('importInput')
-    };
-
-    function formatVnd(v) {
-      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
-    }
-
-    function slugCompany(name) {
-      return (name || '').toLowerCase().trim().replace(/\s+/g, ' ');
-    }
-
-    function calc() {
-      const revenue = Number(els.revenue.value) || 0;
-      const cost = Number(els.cost.value) || 0;
-      const profit = revenue - cost;
-      const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
-      const status = margin >= 3 ? 'DUYỆT' : margin >= 0 ? 'CÂN NHẮC' : 'TỪ CHỐI';
-      const result = { revenue, cost, profit, margin, status };
-      els.result.innerHTML = `Doanh thu: <b>${formatVnd(revenue)}</b> | Giá vốn+CP: <b>${formatVnd(cost)}</b><br>Lợi nhuận: <b>${formatVnd(profit)}</b> | Biên: <b>${margin.toFixed(2)}%</b> | Khuyến nghị: <b>${status}</b>`;
-      return result;
-    }
-
-    function getHistory() {
-      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
-    }
-
-    function setHistory(items) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
-    }
-
-    function toast(msg, isError = false) {
-      els.toast.textContent = msg;
-      els.toast.className = `text-sm font-medium ${isError ? 'text-red-600' : 'text-emerald-600'}`;
-      setTimeout(() => { els.toast.textContent = ''; }, 2500);
-    }
-
-    function saveCurrentPakd() {
-      const companyName = els.companyName.value.trim();
-      if (!companyName) return toast('Vui lòng nhập tên công ty trước khi lưu.', true);
-      const metrics = calc();
-      const now = new Date();
-      const record = {
-        id: crypto.randomUUID(),
-        companyName,
-        companyKey: slugCompany(companyName),
-        senderName: els.senderName.value.trim(),
-        note: els.note.value.trim(),
-        createdAt: now.toISOString(),
-        metrics
-      };
-      const history = getHistory();
-      history.unshift(record);
-      setHistory(history);
-      renderHistory();
-      toast('Đã lưu PAKD vào localStorage (offline).');
-    }
-
-    function deleteRecord(id) {
-      const history = getHistory().filter(x => x.id !== id);
-      setHistory(history);
-      renderHistory();
-    }
-
-    function loadRecord(id) {
-      const item = getHistory().find(x => x.id === id);
-      if (!item) return;
-      els.companyName.value = item.companyName || '';
-      els.senderName.value = item.senderName || '';
-      els.note.value = item.note || '';
-      els.revenue.value = item.metrics?.revenue ?? 0;
-      els.cost.value = item.metrics?.cost ?? 0;
-      calc();
-      toast('Đã nạp lại PAKD cũ.');
-    }
-
-    function renderHistory() {
-      const f = slugCompany(els.filterCompany.value);
-      const items = getHistory().filter(x => !f || x.companyKey.includes(f));
-      els.historyBody.innerHTML = '';
-      if (!items.length) {
-        els.historyBody.innerHTML = '<tr><td colspan="5" class="border p-3 text-center text-slate-500">Chưa có dữ liệu.</td></tr>';
-        return;
-      }
-
-      items.forEach(item => {
-        const tr = document.createElement('tr');
-        tr.innerHTML = `
-          <td class="border p-2">${new Date(item.createdAt).toLocaleString('vi-VN')}</td>
-          <td class="border p-2">${item.companyName}</td>
-          <td class="border p-2 text-right ${item.metrics.profit >= 0 ? 'text-emerald-700' : 'text-red-600'}">${formatVnd(item.metrics.profit)}</td>
-          <td class="border p-2">${item.senderName || '-'}</td>
-          <td class="border p-2">
-            <button data-load="${item.id}" class="bg-blue-600 text-white px-2 py-1 rounded mr-1">Nạp</button>
-            <button data-del="${item.id}" class="bg-red-600 text-white px-2 py-1 rounded">Xóa</button>
-          </td>`;
-        els.historyBody.appendChild(tr);
-      });
-    }
-
-    function exportBackup() {
-      const data = getHistory();
-      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = `pakd-backup-${new Date().toISOString().slice(0, 10)}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    }
-
-    function importBackup(file) {
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        try {
-          const parsed = JSON.parse(reader.result);
-          if (!Array.isArray(parsed)) throw new Error('Sai định dạng');
-          setHistory(parsed);
-          renderHistory();
-          toast('Đã nhập backup thành công.');
-        } catch {
-          toast('File JSON không hợp lệ.', true);
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            theme: { 
+                extend: { 
+                    colors: {
+                        corporate: { 900: '#0f172a', 800: '#1e293b', 600: '#334155', accent: '#3b82f6' },
+                        stock: { light: '#f0f9ff', border: '#bae6fd', text: '#0369a1' }
+                    }
+                } 
+            }
         }
-      };
-      reader.readAsText(file);
-    }
+    </script>
 
-    document.getElementById('calcBtn').addEventListener('click', calc);
-    document.getElementById('saveBtn').addEventListener('click', saveCurrentPakd);
-    document.getElementById('refreshBtn').addEventListener('click', renderHistory);
-    document.getElementById('exportBtn').addEventListener('click', exportBackup);
-    els.importInput.addEventListener('change', e => importBackup(e.target.files[0]));
-    els.historyBody.addEventListener('click', e => {
-      const loadId = e.target.getAttribute('data-load');
-      const delId = e.target.getAttribute('data-del');
-      if (loadId) loadRecord(loadId);
-      if (delId) deleteRecord(delId);
-    });
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; -webkit-print-color-adjust: exact; font-size: 10pt; }
+            @page { size: A4; margin: 1.0cm; }
+            .print-container { display: block !important; }
+            .screen-container { display: none !important; }
+        }
+        
+        .print-container { display: none; font-family: 'Times New Roman', serif; color: #000; }
+        .print-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 9pt; }
+        .print-table th, .print-table td { border: 1px solid #333; padding: 5px; text-align: center; }
+        .print-table th { background-color: #f3f4f6; font-weight: bold; }
 
-    calc();
-    renderHistory();
-  </script>
+        .custom-scroll::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        
+        .input-label { display: block; font-size: 0.7rem; font-weight: 700; color: #64748b; text-transform: uppercase; margin-bottom: 2px; }
+        .input-field { width: 100%; border: 1px solid #e2e8f0; border-radius: 4px; padding: 5px 8px; font-size: 0.85rem; transition: all 0.2s; }
+        .input-field:focus { outline: none; border-color: #3b82f6; box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1); }
+        .input-group-header { font-size: 0.75rem; font-weight: 800; text-transform: uppercase; letter-spacing: 0.05em; color: #475569; padding-bottom: 4px; border-bottom: 1px solid #e2e8f0; margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+        
+        /* Table Input overrides */
+        .table-input { width: 100%; border: none; background: transparent; padding: 4px; outline: none; font-size: 0.85rem; text-align: inherit; }
+        .table-input:focus { background: #eff6ff; }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-800 h-screen overflow-hidden flex flex-col">
+    <div id="root" class="h-full flex flex-col"></div>
+
+    <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+
+        // --- UTILS ---
+        const formatVND = (v) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND', maximumFractionDigits: 0 }).format(v);
+        const formatUSD = (v) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD', maximumFractionDigits: 2 }).format(v);
+        const formatNum = (v) => new Intl.NumberFormat('vi-VN').format(v);
+        const parseNum = (v) => {
+            if (typeof v === 'string') return parseFloat(v.replace(/,/g, '')) || 0;
+            return parseFloat(v) || 0;
+        };
+
+        // --- ICONS ---
+        const Icons = {
+            Warehouse: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" /></svg>,
+            Briefcase: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" /></svg>,
+            Settings: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" /><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>,
+            Plus: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>,
+            Trash: () => <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" /></svg>
+        };
+
+        // --- NEW SINGLE INPUT COMPONENTS ---
+        const SingleWeightInput = ({ label, valueKg, onChange }) => (
+          <div className="mb-2">
+            <label className="input-label">{label}</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={valueKg ? formatNum(valueKg) : ''}
+                onChange={e => onChange(parseNum(e.target.value.replace(/\./g,'')))}
+                className="input-field pr-6 text-right font-bold"
+                placeholder="0"
+              />
+              <span className="absolute right-2 top-1.5 text-[10px] text-slate-400">kg</span>
+            </div>
+          </div>
+        );
+
+        const SinglePriceInput = ({ label, valuePerKg, onChange }) => (
+          <div className="mb-2">
+            <label className="input-label">{label}</label>
+            <div className="relative">
+              <input
+                type="text"
+                value={valuePerKg ? formatNum(valuePerKg) : ''}
+                onChange={e => onChange(parseNum(e.target.value.replace(/\./g,'')))}
+                className="input-field pr-8 text-right font-medium"
+                placeholder="0"
+              />
+              <span className="absolute right-2 top-1.5 text-[10px] text-slate-400">đ/kg</span>
+            </div>
+          </div>
+        );
+
+        // --- MAIN APP ---
+        const PAKD_BUY_V3 = () => {
+            // 1. STATE
+            const [inventory, setInventory] = useState({
+                stockQty: 1000,
+                stockAvgCost: 97000,
+                transitQty: 5000,
+                transitAvgCost: 100000
+            });
+
+            const [inputs, setInputs] = useState({
+                paymentMethod: 'LC',
+                ttRatio: 100, capitalCostPercent: 6.5,
+                lcMargin: 10, lcDays: 90, lcOpenFee: 0.2, lcInterest: 5.8,
+                exchangeRate: 26150,
+                managementFee: 1.0,
+                leadTime: 30, holdingTime: 60,
+                freightTotal: 45000000, importTax: 0, processingCost: 0,
+                contractPrice: 102000, marketPrice: 99500,
+                businessRiskPercent: 2.0, customerCreditDays: 30, lendingRate: 12.0
+            });
+
+            // MULTI-ROW PRODUCTS
+            const [products, setProducts] = useState([
+                { id: 1, alloy: "A1050 H14", thickness: "1.0mm", width: "1200mm", weight: 5000, priceFC: 4120 },
+                { id: 2, alloy: "A3003 H14", thickness: "1.2mm", width: "1200mm", weight: 3000, priceFC: 4200 }
+            ]);
+
+            const [result, setResult] = useState({});
+            const chartRef = useRef(null);
+            const chartInstance = useRef(null);
+
+            // --- MULTI-ROW HANDLERS ---
+            const addRow = () => {
+                setProducts([...products, { id: Date.now(), alloy: "", thickness: "", width: "", weight: 0, priceFC: 0 }]);
+            };
+
+            const removeRow = (id) => {
+                if (products.length > 1) {
+                    setProducts(products.filter(p => p.id !== id));
+                }
+            };
+
+            const updateProduct = (id, field, value) => {
+                setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p));
+            };
+
+            // --- CORE ENGINE ---
+            useEffect(() => {
+                // 1. Tính tổng Volume và Invoice từ bảng sản phẩm
+                const totalWeight = products.reduce((sum, p) => sum + (parseNum(p.weight) || 0), 0);
+                const invoiceUSD = products.reduce((sum, p) => sum + ((parseNum(p.weight) || 0) / 1000) * (parseNum(p.priceFC) || 0), 0);
+                const invoiceVND = invoiceUSD * inputs.exchangeRate;
+
+                // 2. Giá sau hệ số quản lý
+                const landedValueHD = invoiceVND * (1 + inputs.managementFee / 100);
+                const mgmtCostVND = landedValueHD - invoiceVND;
+                const pureGoodsValueVND = landedValueHD;
+
+                // 3. Logistics & Thuế
+                const taxVND = invoiceVND * (inputs.importTax / 100);
+                const safeFreightVND = inputs.freightTotal <= 0 ? 0 : inputs.freightTotal;
+                const processingVND = inputs.processingCost * totalWeight;
+
+                // TỔNG GIÁ TRỊ VẬT LÝ VỀ KHO (ghi nhận tài sản)
+                const landedPhysicalVND = pureGoodsValueVND + taxVND + safeFreightVND + processingVND;
+
+                const landedPhysicalPerTon = totalWeight > 0 ? landedPhysicalVND / (totalWeight / 1000) : 0;
+                const newBatchPhysicalCost = landedPhysicalPerTon / 1000; // VND/kg
+
+                // 4. Chi phí tài chính
+                let finCostVND = 0;
+                const totalDays = inputs.leadTime + inputs.holdingTime;
+
+                if (inputs.paymentMethod === 'TT') {
+                    const cashOutflow = invoiceVND + taxVND + safeFreightVND;
+                    finCostVND = cashOutflow * (inputs.capitalCostPercent / 100) * (totalDays / 365);
+                } else {
+                    const openFee = invoiceVND * (inputs.lcOpenFee / 100);
+                    const lcInterest = invoiceVND * (inputs.lcInterest / 100) * (inputs.lcDays / 365);
+                    const equityUsed = (invoiceVND * inputs.lcMargin/100) + taxVND + safeFreightVND;
+                    const equityCost = equityUsed * (inputs.capitalCostPercent / 100) * (totalDays / 365);
+                    finCostVND = openFee + lcInterest + equityCost;
+                }
+                const finCostKg = totalWeight > 0 ? finCostVND / totalWeight : 0;
+
+                const newBatchEconomicCost = newBatchPhysicalCost + finCostKg;
+
+                // 5. Bình quân giá vốn
+                const currentTotalQty = inventory.stockQty;
+                const currentTotalValue = inventory.stockQty * inventory.stockAvgCost;
+                const currentAvgCost = currentTotalQty > 0 ? currentTotalValue / currentTotalQty : 0;
+
+                const newTotalQty = currentTotalQty + totalWeight;
+                const newTotalValue = currentTotalValue + landedPhysicalVND;
+                const newAvgCostKg = newTotalQty > 0 ? newTotalValue / newTotalQty : 0;
+
+                const deltaCost = newAvgCostKg - currentAvgCost;
+
+                // 6. Lớp kinh doanh & Khuyến nghị
+                const customerFinanceCostKg = newBatchEconomicCost * (inputs.lendingRate / 100) * (inputs.customerCreditDays / 365);
+                const sellingPriceAfterRisk = inputs.contractPrice * (1 - inputs.businessRiskPercent / 100);
+                const realProfitKg = sellingPriceAfterRisk - newBatchEconomicCost - customerFinanceCostKg;
+
+                let recommendation = "", recColor = "";
+                if (newAvgCostKg <= inputs.contractPrice) { recommendation = "NHẬP BẢO TOÀN"; recColor = "text-green-600"; }
+                else if (newAvgCostKg <= inputs.marketPrice) { recommendation = "NHẬP CÂN BẰNG"; recColor = "text-blue-600"; }
+                else { recommendation = "RỦI RO CAO"; recColor = "text-red-600"; }
+
+                setResult({
+                    totalWeight, invoiceUSD, invoiceVND,
+                    mgmtCostVND, finCostVND,
+                    landedPhysicalVND, newBatchPhysicalCost, finCostKg, newBatchEconomicCost,
+                    currentTotalQty, currentAvgCost, newTotalQty, newAvgCostKg, deltaCost,
+                    recommendation, recColor,
+                    realProfitKg, customerFinanceCostKg, sellingPriceAfterRisk
+                });
+
+                updateChart(currentAvgCost, newBatchPhysicalCost, newAvgCostKg);
+
+            }, [inputs, inventory, products]);
+
+            const updateChart = (oldAvg, newBatch, newAvg) => {
+                if (!chartRef.current) return;
+                if (chartInstance.current) chartInstance.current.destroy();
+                const ctx = chartRef.current.getContext('2d');
+                chartInstance.current = new Chart(ctx, {
+                    type: 'bar',
+                    data: {
+                        labels: ['Hiện tại', 'Lô Mới về kho', 'SAU NHẬP (BQ)'],
+                        datasets: [{
+                            label: 'Giá Vốn (VND/kg)',
+                            data: [oldAvg, newBatch, newAvg],
+                            backgroundColor: ['#94a3b8', newBatch < oldAvg ? '#22c55e' : '#ef4444', '#4f46e5'],
+                            borderRadius: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: { 
+                            legend: { display: false },
+                            tooltip: { callbacks: { label: function(context) { return formatNum(context.parsed.y) + ' đ/kg'; } } }
+                        },
+                        scales: { 
+                            y: { 
+                                beginAtZero: false, 
+                                min: Math.min(oldAvg, newBatch, newAvg) * 0.9,
+                                ticks: { callback: function(value) { return formatNum(value); } }
+                            } 
+                        }
+                    }
+                });
+            };
+
+            const handleInvChange = (field, val) => setInventory({...inventory, [field]: val});
+            const handleInputChange = (e) => setInputs({...inputs, [e.target.name]: parseFloat(e.target.value)||e.target.value});
+
+            return (
+                <div className="flex h-full font-sans screen-container">
+                    
+                    {/* DATALIST FOR ALLOYS */}
+                    <datalist id="alloy-list">
+                        <option value="A1050 H14" />
+                        <option value="A3003 H14" />
+                        <option value="A3003 CT H16" />
+                        <option value="A5052 H32" />
+                        <option value="A5052 H34" />
+                    </datalist>
+
+                    {/* --- LEFT: INPUTS CHUNG (35%) --- */}
+                    <div className="w-[35%] bg-white border-r border-slate-200 h-full overflow-y-auto custom-scroll p-5 flex flex-col gap-5">
+                        <div className="flex items-center gap-2 text-corporate-900 mb-1">
+                            <Icons.Warehouse />
+                            <div>
+                                <h1 className="text-xl font-extrabold tracking-tight leading-none">PAKD BUY 3.0</h1>
+                                <span className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider">Multi-Product Inventory Engine</span>
+                            </div>
+                        </div>
+
+                        {/* A. HIỆN TRẠNG KHO */}
+                        <div className="bg-stock-light border border-stock-border rounded-lg p-4 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-blue-400 opacity-10 rounded-bl-full -mr-8 -mt-8"></div>
+                            <div className="input-group-header text-stock-text"><Icons.Warehouse /> A. Hiện Trạng Kho</div>
+                            
+                            <SingleWeightInput label="1. Tồn kho hiện hữu" valueKg={inventory.stockQty} onChange={v => handleInvChange('stockQty', v)} />
+                            <SinglePriceInput label="Giá vốn Tồn kho" valuePerKg={inventory.stockAvgCost} onChange={v => handleInvChange('stockAvgCost', v)} />
+                            <div className="my-2 border-t border-stock-border"></div>
+                            <SingleWeightInput label="2. Hàng đang đi đường" valueKg={inventory.transitQty} onChange={v => handleInvChange('transitQty', v)} />
+                            <SinglePriceInput label="Giá vốn Hàng về" valuePerKg={inventory.transitAvgCost} onChange={v => handleInvChange('transitAvgCost', v)} />
+                        </div>
+
+                        {/* C. THAM CHIẾU GIÁ BÁN */}
+                        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm">
+                            <div className="input-group-header"><Icons.Briefcase /> B. Tham Chiếu Thị Trường</div>
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <SinglePriceInput label="Giá Hợp đồng (Dự kiến)" valuePerKg={inputs.contractPrice} onChange={v => setInputs({...inputs, contractPrice: v})} />
+                                <SinglePriceInput label="Giá TT Spot (Tham chiếu)" valuePerKg={inputs.marketPrice} onChange={v => setInputs({...inputs, marketPrice: v})} />
+                            </div>
+                            
+                            <div className="grid grid-cols-3 gap-3 pt-3 border-t border-slate-100">
+                                <div>
+                                    <label className="input-label text-orange-700">Hệ số KD (%)</label>
+                                    <input type="number" step="0.1" value={inputs.businessRiskPercent} onChange={e => setInputs({...inputs, businessRiskPercent: parseFloat(e.target.value) || 0})} className="input-field font-bold text-orange-700 border-orange-200 bg-orange-50" />
+                                    <div className="text-[9px] text-slate-500 mt-0.5">Biên rủi ro</div>
+                                </div>
+                                <div>
+                                    <label className="input-label text-indigo-700">Nợ KH (ngày)</label>
+                                    <input type="number" value={inputs.customerCreditDays} onChange={e => setInputs({...inputs, customerCreditDays: parseInt(e.target.value) || 0})} className="input-field border-indigo-200 bg-indigo-50" />
+                                </div>
+                                <div>
+                                    <label className="input-label text-rose-700">Lãi tham chiếu</label>
+                                    <input type="number" step="0.1" value={inputs.lendingRate} onChange={e => setInputs({...inputs, lendingRate: parseFloat(e.target.value) || 0})} className="input-field border-rose-200 bg-rose-50" />
+                                </div>
+                            </div>
+                        </div>
+
+                        {/* D. THAM SỐ LÔ MỚI (LOGISTICS & FINANCE) */}
+                        <div className="bg-white border border-slate-200 rounded-lg p-4 shadow-sm relative overflow-hidden">
+                            <div className="absolute top-0 right-0 w-16 h-16 bg-slate-400 opacity-10 rounded-bl-full -mr-8 -mt-8"></div>
+                            <div className="input-group-header"><Icons.Settings /> C. Cấu Hình Lô Nhập</div>
+                            
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label className="input-label text-blue-700">Tỷ giá (USD/VND)</label>
+                                    <input type="text" value={formatNum(inputs.exchangeRate)} onChange={e => handleInputChange({target: {name: 'exchangeRate', value: e.target.value.replace(/\./g,'')}})} className="input-field font-bold text-blue-800 border-blue-200 bg-blue-50" />
+                                </div>
+                                <div title="Chi phí quản lý, rủi ro, overhead">
+                                    <label className="input-label text-purple-700 cursor-help">Hệ số quản lý (%) ⓘ</label>
+                                    <input type="number" step="0.1" name="managementFee" value={inputs.managementFee} onChange={handleInputChange} className="input-field bg-purple-50 border-purple-200 text-purple-700 font-bold" />
+                                </div>
+                            </div>
+
+                            <div className="grid grid-cols-2 gap-3 mb-3">
+                                <div>
+                                    <label className="input-label">Cước + Logs (Tổng VND)</label>
+                                    <input type="text" value={formatNum(inputs.freightTotal)} onChange={e => handleInputChange({target: {name:'freightTotal', value: e.target.value.replace(/\./g,'')}})} className="input-field text-xs" />
+                                </div>
+                                <div>
+                                    <label className="input-label">Thuế NK (%) & Gia công</label>
+                                    <div className="flex gap-1">
+                                        <input type="number" name="importTax" value={inputs.importTax} onChange={handleInputChange} className="input-field w-1/2 text-xs" placeholder="Thuế %"/>
+                                        <input type="number" name="processingCost" value={inputs.processingCost} onChange={handleInputChange} className="input-field w-1/2 text-xs" placeholder="đ/kg GC"/>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="bg-slate-50 p-2 rounded border border-slate-200">
+                                <div className="flex gap-2 mb-2">
+                                    <button onClick={()=>setInputs({...inputs, paymentMethod:'TT'})} className={`flex-1 text-[10px] font-bold py-1 rounded border ${inputs.paymentMethod==='TT'?'bg-slate-700 text-white':'bg-white text-slate-500'}`}>T/T (Tiền mặt)</button>
+                                    <button onClick={()=>setInputs({...inputs, paymentMethod:'LC'})} className={`flex-1 text-[10px] font-bold py-1 rounded border ${inputs.paymentMethod==='LC'?'bg-indigo-600 text-white':'bg-white text-slate-500'}`}>L/C (Tín dụng)</button>
+                                </div>
+                                {inputs.paymentMethod === 'LC' ? (
+                                    <div className="grid grid-cols-3 gap-2">
+                                        <div><label className="text-[9px] font-bold text-slate-500">Margin %</label><input name="lcMargin" value={inputs.lcMargin} onChange={handleInputChange} className="input-field text-xs h-6 px-1 text-center" /></div>
+                                        <div><label className="text-[9px] font-bold text-slate-500">Days LC</label><input name="lcDays" value={inputs.lcDays} onChange={handleInputChange} className="input-field text-xs h-6 px-1 text-center" /></div>
+                                        <div><label className="text-[9px] font-bold text-slate-500">Int %</label><input name="lcInterest" step="0.1" value={inputs.lcInterest} onChange={handleInputChange} className="input-field text-xs h-6 px-1 text-center" /></div>
+                                    </div>
+                                ) : (
+                                    <div className="grid grid-cols-2 gap-2">
+                                        <div><label className="text-[9px] font-bold text-slate-500">Capital Cost %</label><input name="capitalCostPercent" step="0.1" value={inputs.capitalCostPercent} onChange={handleInputChange} className="input-field text-xs h-6 px-1 text-center" /></div>
+                                        <div><label className="text-[9px] font-bold text-slate-500">Lead+Hold Days</label><div className="text-xs font-bold pt-1 text-center">{inputs.leadTime + inputs.holdingTime}</div></div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+
+                    </div>
+
+                    {/* --- RIGHT: BẢNG MÃ NHÔM & DASHBOARD (65%) --- */}
+                    <div className="w-[65%] bg-slate-100 h-full overflow-y-auto custom-scroll p-6 flex flex-col gap-6">
+                        
+                        {/* PRODUCT TABLE SECTION */}
+                        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+                            <div className="bg-slate-800 px-4 py-3 flex justify-between items-center text-white">
+                                <h3 className="font-bold text-sm uppercase flex items-center gap-2"><Icons.Ship /> D. Chi tiết Lô Hàng (Mã Nhôm)</h3>
+                                <button onClick={addRow} className="bg-blue-500 hover:bg-blue-600 text-white text-xs px-3 py-1.5 rounded flex items-center gap-1 font-bold transition">
+                                    <Icons.Plus /> Thêm mã
+                                </button>
+                            </div>
+                            <div className="p-0 overflow-x-auto">
+                                <table className="w-full text-sm text-left border-collapse">
+                                    <thead className="bg-slate-100 text-slate-600 text-xs uppercase">
+                                        <tr>
+                                            <th className="p-2 border-b w-8 text-center">#</th>
+                                            <th className="p-2 border-b">Mác nhôm</th>
+                                            <th className="p-2 border-b w-24">Dày</th>
+                                            <th className="p-2 border-b w-24">Khổ</th>
+                                            <th className="p-2 border-b w-32 text-right">Khối lượng (kg)</th>
+                                            <th className="p-2 border-b w-32 text-right">USD/Tấn</th>
+                                            <th className="p-2 border-b w-10 text-center"></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="divide-y divide-slate-100">
+                                        {products.map((p, i) => (
+                                            <tr key={p.id} className="hover:bg-slate-50 transition-colors">
+                                                <td className="p-1 border-r border-slate-100 text-center text-xs text-slate-400 font-bold">{i+1}</td>
+                                                <td className="p-1 border-r border-slate-100"><input list="alloy-list" value={p.alloy} onChange={e=>updateProduct(p.id, 'alloy', e.target.value)} className="table-input font-medium" placeholder="A1050 H14"/></td>
+                                                <td className="p-1 border-r border-slate-100"><input value={p.thickness} onChange={e=>updateProduct(p.id, 'thickness', e.target.value)} className="table-input" placeholder="1.0mm"/></td>
+                                                <td className="p-1 border-r border-slate-100"><input value={p.width} onChange={e=>updateProduct(p.id, 'width', e.target.value)} className="table-input" placeholder="1200mm"/></td>
+                                                <td className="p-1 border-r border-slate-100"><input type="number" value={p.weight || ''} onChange={e=>updateProduct(p.id, 'weight', parseNum(e.target.value))} className="table-input text-right font-bold text-blue-700" placeholder="0"/></td>
+                                                <td className="p-1 border-r border-slate-100"><input type="number" value={p.priceFC || ''} onChange={e=>updateProduct(p.id, 'priceFC', parseNum(e.target.value))} className="table-input text-right font-bold text-green-700" placeholder="0"/></td>
+                                                <td className="p-1 text-center">
+                                                    <button onClick={() => removeRow(p.id)} className="text-red-400 hover:text-red-600 p-1 rounded hover:bg-red-50" title="Xóa dòng"><Icons.Trash /></button>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                    <tfoot className="bg-slate-50 font-bold text-slate-700">
+                                        <tr>
+                                            <td colSpan="4" className="p-2 text-right uppercase text-xs">TỔNG CỘNG LÔ HÀNG:</td>
+                                            <td className="p-2 text-right text-blue-800">{formatNum(result.totalWeight)} kg</td>
+                                            <td className="p-2 text-right text-green-800">{formatUSD(result.invoiceUSD)}</td>
+                                            <td></td>
+                                        </tr>
+                                    </tfoot>
+                                </table>
+                            </div>
+                        </div>
+
+                        {/* EXECUTIVE SUMMARY */}
+                        <div className="grid grid-cols-3 gap-4">
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center">
+                                <div className="text-xs font-bold text-slate-400 uppercase tracking-wide">Giá Vốn Tồn Kho hiện tại</div>
+                                <div className="text-2xl font-bold text-slate-600 mt-1">
+                                    {formatNum(result.currentAvgCost)} <span className="text-sm font-normal text-slate-400">đ/kg</span>
+                                </div>
+                                <div className="w-full bg-slate-100 h-1 mt-2 rounded overflow-hidden"><div className="bg-slate-400 h-full" style={{width: '100%'}}></div></div>
+                            </div>
+
+                            <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-center relative overflow-hidden">
+                                <div className="text-xs font-bold text-green-600 uppercase tracking-wide">Giá lô mới về kho</div>
+                                <div className="text-2xl font-bold text-green-700 mt-1">
+                                    {formatNum(result.newBatchPhysicalCost)} <span className="text-sm font-normal text-green-500">đ/kg</span>
+                                </div>
+                                <div className="text-xs text-red-500 mt-1 font-semibold flex items-center gap-1">
+                                    <span className="w-1.5 h-1.5 bg-red-500 rounded-full inline-block"></span>
+                                    Chi phí vốn lô này: {formatNum(result.finCostKg)} đ/kg
+                                </div>
+                            </div>
+
+                            <div className="bg-corporate-800 text-white p-4 rounded-xl shadow-lg flex flex-col justify-center relative overflow-hidden">
+                                <div className="relative z-10">
+                                    <div className="text-xs font-bold text-indigo-300 uppercase tracking-wide">Giá Bình Quân Mới</div>
+                                    <div className="text-3xl font-bold mt-1">
+                                        {formatNum(result.newAvgCostKg)} <span className="text-lg font-normal opacity-70">đ/kg</span>
+                                    </div>
+                                    <div className="text-xs font-medium mt-1 text-indigo-200 flex items-center gap-1">
+                                        {result.deltaCost > 0 ? <span className="bg-red-500/20 px-1 rounded">▲ Tăng {formatNum(result.deltaCost)}</span> : <span className="bg-green-500/20 px-1 rounded">▼ Giảm {formatNum(Math.abs(result.deltaCost))}</span>}
+                                        <span>đ/kg</span>
+                                    </div>
+                                    <div className="text-[9px] text-slate-400 italic mt-1 leading-tight">
+                                        (Giá BQ bị kéo lên do lô mới cao hơn tồn kho hiện hữu)
+                                    </div>
+                                </div>
+                                <div className="absolute -right-4 -bottom-4 w-24 h-24 bg-white opacity-5 rounded-full blur-xl"></div>
+                            </div>
+                        </div>
+
+                        {/* CHARTS & DECISION */}
+                        <div className="grid grid-cols-2 gap-6 flex-1">
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col">
+                                <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Biểu đồ Tác động Giá Vốn</h3>
+                                <div className="flex-1 relative min-h-[200px]">
+                                    <canvas ref={chartRef}></canvas>
+                                </div>
+                            </div>
+
+                            <div className="bg-white p-5 rounded-xl shadow-sm border border-slate-200 flex flex-col justify-between">
+                                <div>
+                                    <h3 className="text-xs font-bold text-slate-400 uppercase mb-4">Kết Quả Lớp Kinh Doanh</h3>
+                                    
+                                    <div className={`p-4 rounded-xl border ${result.realProfitKg > 0 ? 'bg-green-50 border-green-300' : 'bg-red-50 border-red-300'}`}>
+                                        <div className="text-sm font-bold text-slate-600">Lãi/Lỗ thực tế sau bán (đ/kg)</div>
+                                        <div className={`text-3xl font-black mt-1 ${result.realProfitKg > 0 ? 'text-green-700' : 'text-red-700'}`}>
+                                            {result.realProfitKg > 0 ? '+' : ''}{formatNum(result.realProfitKg)}
+                                        </div>
+                                        <div className="text-[10px] text-slate-500 italic mt-2 leading-tight">
+                                            Đã trừ {inputs.businessRiskPercent}% rủi ro vào giá bán và chi phí tài chính cho {inputs.customerCreditDays} ngày công nợ.
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className={`mt-4 text-center p-4 rounded-xl border-2 transition-colors ${result.recColor === 'text-green-600' ? 'bg-green-50 border-green-200' : result.recColor === 'text-blue-600' ? 'bg-blue-50 border-blue-200' : 'bg-red-50 border-red-200'}`}>
+                                    <div className="text-[10px] font-bold uppercase tracking-widest opacity-60">Khuyến nghị Hệ thống</div>
+                                    <div className={`text-2xl font-black mt-1 ${result.recColor}`}>{result.recommendation}</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PAKD_BUY_V3 />);
+    </script>
 </body>
 </html>
