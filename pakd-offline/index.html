@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PAKD Offline - Lưu theo công ty</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 text-slate-800">
+  <main class="max-w-5xl mx-auto p-4 md:p-8 space-y-6">
+    <header>
+      <h1 class="text-2xl md:text-3xl font-bold">PAKD Offline (không cần server)</h1>
+      <p class="text-sm text-slate-600 mt-1">Dữ liệu chỉ lưu trong trình duyệt bằng <code>localStorage</code>, không tốn chi phí dịch vụ ngoài.</p>
+    </header>
+
+    <section class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+      <h2 class="font-semibold text-lg">1) Nhập thông tin phương án</h2>
+      <div class="grid md:grid-cols-2 gap-3">
+        <label class="text-sm">Tên công ty
+          <input id="companyName" class="mt-1 w-full border rounded px-3 py-2" placeholder="Ví dụ: CÔNG TY TNHH ABC" />
+        </label>
+        <label class="text-sm">Người đề xuất
+          <input id="senderName" class="mt-1 w-full border rounded px-3 py-2" placeholder="Nguyễn Văn A" />
+        </label>
+      </div>
+      <div class="grid md:grid-cols-3 gap-3">
+        <label class="text-sm">Doanh thu (VNĐ)
+          <input id="revenue" type="number" class="mt-1 w-full border rounded px-3 py-2" value="0" />
+        </label>
+        <label class="text-sm">Giá vốn + chi phí (VNĐ)
+          <input id="cost" type="number" class="mt-1 w-full border rounded px-3 py-2" value="0" />
+        </label>
+        <label class="text-sm">Ghi chú
+          <input id="note" class="mt-1 w-full border rounded px-3 py-2" placeholder="Điều kiện công nợ, tồn kho..." />
+        </label>
+      </div>
+      <div class="flex flex-wrap gap-2">
+        <button id="calcBtn" class="bg-blue-600 text-white rounded px-4 py-2">Tính nhanh</button>
+        <button id="saveBtn" class="bg-emerald-600 text-white rounded px-4 py-2">Lưu PAKD hiện tại</button>
+        <button id="exportBtn" class="bg-slate-700 text-white rounded px-4 py-2">Xuất backup JSON</button>
+        <label class="bg-amber-500 text-white rounded px-4 py-2 cursor-pointer">Nhập backup JSON
+          <input id="importInput" type="file" accept="application/json" class="hidden" />
+        </label>
+      </div>
+      <div id="result" class="text-sm bg-slate-50 border border-slate-200 rounded p-3"></div>
+      <p id="toast" class="text-sm font-medium"></p>
+    </section>
+
+    <section class="bg-white rounded-xl border border-slate-200 p-4 space-y-3">
+      <h2 class="font-semibold text-lg">2) Lịch sử PAKD theo tên công ty</h2>
+      <div class="flex gap-2">
+        <input id="filterCompany" class="flex-1 border rounded px-3 py-2" placeholder="Lọc theo công ty (để trống = tất cả)" />
+        <button id="refreshBtn" class="bg-slate-800 text-white rounded px-4 py-2">Lọc</button>
+      </div>
+      <div class="overflow-auto">
+        <table class="w-full text-sm border-collapse">
+          <thead>
+            <tr class="bg-slate-100">
+              <th class="border p-2 text-left">Ngày lưu</th>
+              <th class="border p-2 text-left">Công ty</th>
+              <th class="border p-2 text-right">Lợi nhuận</th>
+              <th class="border p-2 text-left">Người đề xuất</th>
+              <th class="border p-2 text-left">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody id="historyBody"></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+
+  <script>
+    const STORAGE_KEY = 'pakd_history_v1';
+
+    const els = {
+      companyName: document.getElementById('companyName'),
+      senderName: document.getElementById('senderName'),
+      revenue: document.getElementById('revenue'),
+      cost: document.getElementById('cost'),
+      note: document.getElementById('note'),
+      result: document.getElementById('result'),
+      toast: document.getElementById('toast'),
+      historyBody: document.getElementById('historyBody'),
+      filterCompany: document.getElementById('filterCompany'),
+      importInput: document.getElementById('importInput')
+    };
+
+    function formatVnd(v) {
+      return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(v || 0);
+    }
+
+    function slugCompany(name) {
+      return (name || '').toLowerCase().trim().replace(/\s+/g, ' ');
+    }
+
+    function calc() {
+      const revenue = Number(els.revenue.value) || 0;
+      const cost = Number(els.cost.value) || 0;
+      const profit = revenue - cost;
+      const margin = revenue > 0 ? (profit / revenue) * 100 : 0;
+      const status = margin >= 3 ? 'DUYỆT' : margin >= 0 ? 'CÂN NHẮC' : 'TỪ CHỐI';
+      const result = { revenue, cost, profit, margin, status };
+      els.result.innerHTML = `Doanh thu: <b>${formatVnd(revenue)}</b> | Giá vốn+CP: <b>${formatVnd(cost)}</b><br>Lợi nhuận: <b>${formatVnd(profit)}</b> | Biên: <b>${margin.toFixed(2)}%</b> | Khuyến nghị: <b>${status}</b>`;
+      return result;
+    }
+
+    function getHistory() {
+      try { return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]'); } catch { return []; }
+    }
+
+    function setHistory(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function toast(msg, isError = false) {
+      els.toast.textContent = msg;
+      els.toast.className = `text-sm font-medium ${isError ? 'text-red-600' : 'text-emerald-600'}`;
+      setTimeout(() => { els.toast.textContent = ''; }, 2500);
+    }
+
+    function saveCurrentPakd() {
+      const companyName = els.companyName.value.trim();
+      if (!companyName) return toast('Vui lòng nhập tên công ty trước khi lưu.', true);
+      const metrics = calc();
+      const now = new Date();
+      const record = {
+        id: crypto.randomUUID(),
+        companyName,
+        companyKey: slugCompany(companyName),
+        senderName: els.senderName.value.trim(),
+        note: els.note.value.trim(),
+        createdAt: now.toISOString(),
+        metrics
+      };
+      const history = getHistory();
+      history.unshift(record);
+      setHistory(history);
+      renderHistory();
+      toast('Đã lưu PAKD vào localStorage (offline).');
+    }
+
+    function deleteRecord(id) {
+      const history = getHistory().filter(x => x.id !== id);
+      setHistory(history);
+      renderHistory();
+    }
+
+    function loadRecord(id) {
+      const item = getHistory().find(x => x.id === id);
+      if (!item) return;
+      els.companyName.value = item.companyName || '';
+      els.senderName.value = item.senderName || '';
+      els.note.value = item.note || '';
+      els.revenue.value = item.metrics?.revenue ?? 0;
+      els.cost.value = item.metrics?.cost ?? 0;
+      calc();
+      toast('Đã nạp lại PAKD cũ.');
+    }
+
+    function renderHistory() {
+      const f = slugCompany(els.filterCompany.value);
+      const items = getHistory().filter(x => !f || x.companyKey.includes(f));
+      els.historyBody.innerHTML = '';
+      if (!items.length) {
+        els.historyBody.innerHTML = '<tr><td colspan="5" class="border p-3 text-center text-slate-500">Chưa có dữ liệu.</td></tr>';
+        return;
+      }
+
+      items.forEach(item => {
+        const tr = document.createElement('tr');
+        tr.innerHTML = `
+          <td class="border p-2">${new Date(item.createdAt).toLocaleString('vi-VN')}</td>
+          <td class="border p-2">${item.companyName}</td>
+          <td class="border p-2 text-right ${item.metrics.profit >= 0 ? 'text-emerald-700' : 'text-red-600'}">${formatVnd(item.metrics.profit)}</td>
+          <td class="border p-2">${item.senderName || '-'}</td>
+          <td class="border p-2">
+            <button data-load="${item.id}" class="bg-blue-600 text-white px-2 py-1 rounded mr-1">Nạp</button>
+            <button data-del="${item.id}" class="bg-red-600 text-white px-2 py-1 rounded">Xóa</button>
+          </td>`;
+        els.historyBody.appendChild(tr);
+      });
+    }
+
+    function exportBackup() {
+      const data = getHistory();
+      const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `pakd-backup-${new Date().toISOString().slice(0, 10)}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+    }
+
+    function importBackup(file) {
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = () => {
+        try {
+          const parsed = JSON.parse(reader.result);
+          if (!Array.isArray(parsed)) throw new Error('Sai định dạng');
+          setHistory(parsed);
+          renderHistory();
+          toast('Đã nhập backup thành công.');
+        } catch {
+          toast('File JSON không hợp lệ.', true);
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    document.getElementById('calcBtn').addEventListener('click', calc);
+    document.getElementById('saveBtn').addEventListener('click', saveCurrentPakd);
+    document.getElementById('refreshBtn').addEventListener('click', renderHistory);
+    document.getElementById('exportBtn').addEventListener('click', exportBackup);
+    els.importInput.addEventListener('change', e => importBackup(e.target.files[0]));
+    els.historyBody.addEventListener('click', e => {
+      const loadId = e.target.getAttribute('data-load');
+      const delId = e.target.getAttribute('data-del');
+      if (loadId) loadRecord(loadId);
+      if (delId) deleteRecord(delId);
+    });
+
+    calc();
+    renderHistory();
+  </script>
+</body>
+</html>
