@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PAKD 7.7 - Thép H&D (Dual Print Mode)</title>
+    
+    <!-- Thư viện React -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <!-- CSS IN ẤN -->
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white; -webkit-print-color-adjust: exact; font-size: 12pt; margin: 0; padding: 0; }
+            @page { size: A4; margin: 1cm; }
+        }
+
+        .print-container { display: none; }
+        .print-mode-active { display: block; }
+
+        .invoice-box { font-family: 'Times New Roman', serif; color: #000; line-height: 1.3; }
+        .invoice-header { display: flex; justify-content: space-between; margin-bottom: 5px; }
+        .invoice-title { text-align: center; font-weight: bold; font-size: 16pt; margin: 10px 0; text-transform: uppercase; }
+        .invoice-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11pt; }
+        .invoice-table th, .invoice-table td { border: 1px solid #000; padding: 4px 6px; text-align: center; vertical-align: middle; }
+        .invoice-table th { font-weight: bold; background-color: #f0f0f0; }
+        .text-left { text-align: left !important; }
+        .text-right { text-align: right !important; }
+        .footer-sign { display: flex; justify-content: space-between; margin-top: 20px; text-align: center; page-break-inside: avoid; }
+    </style>
+</head>
+<body class="bg-slate-50">
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const PAKD77_STORAGE_KEY = "pakd77_history_v1";
+        const PAKD77_BUILD = "2026-02-25-hookfix-v2";
+
+        const parseVNCurrency = (val) => {
+            if (!val) return 0;
+            return Number(val.toString().replace(/\./g, '').replace(/,/g, '').replace(/\s/g, '')) || 0;
+        };
+        const formatCurrency = (value) => new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
+        const formatPercent = (value) => new Intl.NumberFormat('vi-VN', { style: 'percent', minimumFractionDigits: 2 }).format(value / 100);
+
+        const IconBase = ({ d, className, color }) => (
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className} style={{color: color}}>
+                <path d={d} />
+            </svg>
+        );
+        const Printer = (props) => <IconBase {...props} d="M6 9V2h12v7M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2M6 14h12v8H6z" />;
+        const FileText = (props) => <IconBase {...props} d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z M14 2v6h6 M16 13H8 M16 17H8 M10 9H8" />;
+        const Plus = (props) => <IconBase {...props} d="M12 5v14M5 12h14" />;
+        const Trash = (props) => <IconBase {...props} d="M3 6h18M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />;
+        const Calculator = (props) => <IconBase {...props} d="M6 3h12a3 3 0 0 1 3 3v12a3 3 0 0 1-3 3H6a3 3 0 0 1-3-3V6a3 3 0 0 1 3-3z M16 7h-6 M8 11h.01 M12 11h.01 M16 11h.01 M8 15h.01 M12 15h.01 M16 15h.01" />;
+        const AlertTriangle = (props) => <IconBase {...props} d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z M12 9v4 M12 17h.01" />;
+        const TrendingUp = (props) => <IconBase {...props} d="M23 6l-9.5 9.5-5-5L1 18" />;
+        const TrendingDown = (props) => <IconBase {...props} d="M23 18l-9.5-9.5-5 5L1 6" />;
+        const CheckCircle = (props) => <IconBase {...props} d="M22 11.08V12a10 10 0 1 1-5.93-9.14 M22 4L12 14.01l-3-3" />;
+        const XCircle = (props) => <IconBase {...props} d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />;
+        const RefreshCcw = (props) => <IconBase {...props} d="M3 2v6h6 M21 12A9 9 0 0 0 6 5.3L3 8 M21 22v-6h-6 M3 12a9 9 0 0 0 15 6.7l3-2.7" />;
+        const ShieldAlert = (props) => <IconBase {...props} d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z M12 8v4 M12 16h.01" />;
+        const Award = (props) => <IconBase {...props} d="M12 15l-2 5l2 5l2-5l2-5 M12 8a6 6 0 1 0 0-12a6 6 0 0 0 0 12z" />;
+        const Siren = (props) => <IconBase {...props} d="M7 18v-6a5 5 0 1 1 10 0v6 M5 21h14 M12 3v2" />;
+        const History = (props) => <IconBase {...props} d="M3 3v5h5 M3.05 13A9 9 0 1 0 6 5.3L3 8" />;
+        const Zap = (props) => <IconBase {...props} d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" />;
+        const Layers = (props) => <IconBase {...props} d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" />;
+        const Swords = (props) => <IconBase {...props} d="M14.5 17.5L3 6V3h3l11.5 11.5M13 19l6-6M16 16l4 4M19 21l2-2" />;
+        const Wrench = (props) => <IconBase {...props} d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z" />;
+
+        const PakdManualLink = () => (
+            <div className="mt-4 space-y-2 no-print">
+                <a href="https://docs.google.com/document/d/1AHCpd9XuVkD0r1KS-c7etbEUnsnVzvIv6C6xN7KTKdI/edit?tab=t.0" target="_blank" rel="noopener noreferrer" className="flex items-start gap-2 px-3 py-2 rounded-md bg-slate-50 border border-slate-200 hover:bg-slate-100 hover:border-slate-300 transition text-slate-600 hover:text-slate-800">
+                    <FileText className="w-4 h-4 mt-0.5 text-blue-600 flex-shrink-0" />
+                    <div className="text-xs leading-snug"><div className="font-semibold">Cẩm nang logic & công thức PAKD</div><div className="italic text-slate-500">Giải thích chi tiết cách tính & ý nghĩa chỉ số</div></div>
+                </a>
+            </div>
+        );
+
+        const QuotationPrint = ({ inputs, metrics, productList, printMode }) => {
+            const totalRevenue = metrics.revenue;
+            const vat = totalRevenue * 0.1;
+            const totalWithVAT = totalRevenue + vat;
+            const dateObj = new Date(inputs.quoteDate);
+            return (
+                <div className={`invoice-box print-container ${printMode === 'quotation' ? 'print-mode-active' : ''}`}>
+                    <div className="invoice-title">BÁO GIÁ KIÊM XÁC NHẬN ĐƠN HÀNG</div>
+                    <div>Khách hàng: {inputs.customerName}</div>
+                    <table className="invoice-table">
+                        <thead><tr><th>TT</th><th>Chủng loại</th><th>Kích thước</th><th>ĐVT</th><th>SL</th><th>Trọng lượng (Kg)</th><th>Đơn giá</th><th>Thành tiền</th></tr></thead>
+                        <tbody>
+                            {productList.map((prod, index) => (
+                                <tr key={prod.id}>
+                                    <td>{index + 1}</td><td className="text-left">{prod.name}</td><td className="text-left">{prod.specs}</td><td>{prod.unit}</td><td>{prod.qtyUnit}</td>
+                                    <td className="text-right">{new Intl.NumberFormat('vi-VN').format(prod.quantity)}</td>
+                                    <td className="text-right">{new Intl.NumberFormat('vi-VN').format(prod.sellPrice)}</td>
+                                    <td className="text-right">{new Intl.NumberFormat('vi-VN').format(prod.quantity * prod.sellPrice)}</td>
+                                </tr>
+                            ))}
+                            <tr style={{fontWeight: 'bold'}}><td colSpan="7" className="text-right">Cộng tiền hàng:</td><td className="text-right">{new Intl.NumberFormat('vi-VN').format(totalRevenue)}</td></tr>
+                            <tr style={{fontWeight: 'bold'}}><td colSpan="7" className="text-right">Thuế VAT (10%):</td><td className="text-right">{new Intl.NumberFormat('vi-VN').format(vat)}</td></tr>
+                            <tr style={{fontWeight: 'bold', fontSize: '12pt'}}><td colSpan="7" className="text-right">TỔNG CỘNG:</td><td className="text-right">{new Intl.NumberFormat('vi-VN').format(totalWithVAT)} VNĐ</td></tr>
+                        </tbody>
+                    </table>
+                    <div>Bằng chữ: {inputs.amountInWords}</div>
+                    <div>Ngày: {dateObj.toLocaleDateString('vi-VN')}</div>
+                </div>
+            );
+        };
+
+        const PAKDReportPrint = ({ inputs, metrics, productList, printMode }) => (
+            <div className={`invoice-box print-container ${printMode === 'pakd' ? 'print-mode-active' : ''}`}>
+                <h1 style={{textAlign: 'center', fontSize: '18pt', fontWeight: 'bold', color: '#1e3a8a'}}>BÁO CÁO PHƯƠNG ÁN KINH DOANH (PAKD 7.7)</h1>
+                <div><strong>Khách hàng:</strong> {inputs.customerName}</div>
+                <div><strong>Người đề xuất:</strong> {inputs.senderName}</div>
+                <table className="invoice-table" style={{fontSize: '10pt', marginTop: 10}}>
+                    <thead><tr><th>Hàng hóa</th><th>SL</th><th>Giá vốn</th><th>Giá bán</th></tr></thead>
+                    <tbody>
+                        {productList.map(p => (
+                            <tr key={p.id}><td className="text-left">{p.name}</td><td>{p.quantity}</td><td>{p.historicalCost}</td><td>{p.sellPrice}</td></tr>
+                        ))}
+                    </tbody>
+                </table>
+                <div style={{marginTop: 10}}><strong>Kết quả thực:</strong> {formatCurrency(metrics.realProfit)} ({formatPercent(metrics.realMargin)})</div>
+                <div><strong>Khuyến nghị:</strong> {metrics.recommendation}</div>
+            </div>
+        );
+
+        const PAKD_App = () => {
+            const [products, setProducts] = React.useState([
+                { id: 1, name: 'Nhôm cuộn A3003-H14', specs: '2.0 x 1250 x C', unit: 'Cuộn', qtyUnit: 1, quantity: 2591, sellPrice: 101000, historicalCost: 91000, replacementCost: 110000, competitorPrice: 100000 }
+            ]);
+
+            const [inputs, setInputs] = React.useState({
+                customerName: 'CÔNG TY TNHH BUTRACO VIỆT NAM', customerRank: 'VIP', buyFrequency: 'REGULAR',
+                inventoryAge: 7, interestRateYear: 7.6, riskProvision: 1.5, paymentDays: 30,
+                costTransport: 0, costProcessing: 0, costPackaging: 0,
+                quoteDate: new Date().toISOString().split('T')[0],
+                receiverName: 'Bà Trần Thị Dung', receiverTitle: 'Giám đốc', receiverMST: '', receiverPhone: '', receiverEmail: '',
+                senderName: 'Phạm Ngọc Huy', senderTitle: 'Cán bộ kinh doanh', senderPhone: '0979566468', senderEmail: 'huy.pn@hdsteel.com.vn',
+                amountInWords: '', termPayment: '30% đặt cọc, 70% còn lại trước khi giao hàng.', termValidity: '03 ngày kể từ ngày báo giá.',
+                termDelivery: '03 ngày kể từ khi nhận đặt cọc.', termTransport: 'Bên mua chịu trách nhiệm vận chuyển.', termLocation: 'Kho bên bán (KCN Nguyên Khê).'
+            });
+
+            const [metrics, setMetrics] = React.useState({
+                revenue: 0, accountingProfit: 0, realProfit: 0, realMargin: 0,
+                sunkCost: 0, sunkCostRatio: 0, volumeChangeRatio: 0,
+                avgSellPrice: 0, avgHistoricalCost: 0, avgReplacementCost: 0, avgCompetitorPrice: 0,
+                status: 'RED', recommendation: '', reason: '', warningLevel: '', competitorStatus: '', totalAdditionalCosts: 0
+            });
+
+            const [printMode, setPrintMode] = React.useState(null);
+            const [savedRecords, setSavedRecords] = React.useState([]);
+            const [historyFilter, setHistoryFilter] = React.useState("");
+            const fileInputRef = React.useRef(null);
+
+            const addProduct = () => {
+                const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
+                setProducts([...products, { id: newId, name: '', specs: '', unit: 'Cuộn', qtyUnit: 1, quantity: 0, sellPrice: 0, historicalCost: 0, replacementCost: 0, competitorPrice: 0 }]);
+            };
+            const removeProduct = (id) => { if (products.length > 1) setProducts(products.filter(p => p.id !== id)); };
+            const updateProduct = (id, field, value) => { setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p)); };
+
+            React.useEffect(() => {
+                const { inventoryAge, interestRateYear, riskProvision, paymentDays, customerRank, costTransport, costProcessing, costPackaging } = inputs;
+                let totalRevenue = 0, totalCogsHistory = 0, totalReplacementCost = 0, totalCompetitorVal = 0, totalQuantity = 0;
+                let volumeLossWeighted = 0, replacementBase = 0;
+                products.forEach(p => {
+                    const qty = p.quantity || 0, sell = p.sellPrice || 0, hist = p.historicalCost || 0, rep = p.replacementCost || 0, comp = p.competitorPrice || 0;
+                    totalQuantity += qty; totalRevenue += qty * sell; totalCogsHistory += qty * hist; totalReplacementCost += qty * rep; totalCompetitorVal += qty * comp;
+                    if (rep > 0) { const lossRatio = (sell - rep) / rep; volumeLossWeighted += lossRatio * qty * rep; replacementBase += qty * rep; }
+                });
+                const totalAdditionalCosts = (costTransport || 0) + (costProcessing || 0) + (costPackaging || 0);
+                const totalFullCost = totalCogsHistory + totalAdditionalCosts;
+                const avgSellPrice = totalQuantity > 0 ? totalRevenue / totalQuantity : 0;
+                const avgHistoricalCost = totalQuantity > 0 ? totalFullCost / totalQuantity : 0;
+                const avgReplacementCost = totalQuantity > 0 ? totalReplacementCost / totalQuantity : 0;
+                const avgCompetitorPrice = totalQuantity > 0 ? totalCompetitorVal / totalQuantity : 0;
+                const accountingProfit = totalRevenue - totalCogsHistory - totalAdditionalCosts;
+                const capitalBase = totalCogsHistory;
+                const futureFinCost = capitalBase * (interestRateYear / 100) * (paymentDays / 365);
+                const riskCost = capitalBase * (riskProvision / 100);
+                const realProfit = accountingProfit - futureFinCost - riskCost;
+                const realMargin = totalRevenue > 0 ? (realProfit / totalRevenue) * 100 : 0;
+                const sunkCost = totalCogsHistory * (interestRateYear / 100) * (inventoryAge / 12);
+                const sunkCostRatio = totalCogsHistory > 0 ? (sunkCost / totalCogsHistory) * 100 : 0;
+                const volumeChangeRatio = replacementBase > 0 ? -(volumeLossWeighted / replacementBase) * 100 : 0;
+                let competitorStatus = 'SAFE'; if (avgCompetitorPrice > 0 && avgSellPrice > avgCompetitorPrice) competitorStatus = 'WARN';
+
+                let status = '', recommendation = '', reason = '', warningLevel = '';
+                if (volumeChangeRatio > 5) warningLevel = 'CRITICAL'; else if (volumeChangeRatio >= 2) warningLevel = 'WARN'; else if (volumeChangeRatio < -2) warningLevel = 'GROWTH'; else warningLevel = 'SAFE';
+                const isStrategicClearance = inventoryAge > 6 || sunkCostRatio > 5;
+                if (isStrategicClearance) {
+                    status = 'PURPLE'; recommendation = 'ƯU TIÊN XẢ HÀNG (CẮT LỖ)'; reason = `Tồn kho lâu (${inventoryAge} tháng) hoặc lãi vay cao. BẮT BUỘC BÁN.`;
+                } else {
+                    if (totalRevenue < totalCogsHistory && volumeChangeRatio < -2) {
+                        status = 'BLUE'; recommendation = 'CƠ CẤU LẠI VỐN (BLUE)'; reason = `Lỗ kế toán nhưng LÃI QUY MÔ ${formatPercent(Math.abs(volumeChangeRatio))}. Bán để quay vòng vốn.`;
+                    } else {
+                        let isProfitPass = false;
+                        if (customerRank === 'VIP' || customerRank === 'MEDIUM') { if (realMargin > 1.0) isProfitPass = true; } else { if (realMargin > 3.0) isProfitPass = true; }
+                        if (isProfitPass) {
+                            if (warningLevel === 'CRITICAL') { status = 'RED_CAPITAL'; recommendation = 'DỪNG LẠI (HỤT VỐN > 5%)'; reason = `Lãi đạt nhưng Hụt vốn lớn (${formatPercent(volumeChangeRatio)}).`; }
+                            else if (warningLevel === 'WARN') { status = 'YELLOW_CAPITAL'; recommendation = 'DUYỆT CÓ ĐIỀU KIỆN (VÀNG)'; reason = `Lãi đạt nhưng Mất hàng ${formatPercent(volumeChangeRatio)}.`; }
+                            else { status = 'GREEN'; recommendation = 'DUYỆT NGAY (XANH LÁ)'; reason = `Lãi đạt & Bảo toàn vốn an toàn.`; }
+                        } else {
+                            if (realMargin >= 0 && (customerRank === 'VIP' || customerRank === 'MEDIUM')) {
+                                if (warningLevel === 'CRITICAL') { status = 'RED_CAPITAL'; recommendation = 'DỪNG LẠI (RỦI RO KÉP)'; reason = `Lãi quá mỏng & Mất vốn lớn.`; }
+                                else { status = 'YELLOW_APPROVE'; recommendation = 'CÂN NHẮC (LÃI MỎNG)'; reason = `Lãi thấp (${formatPercent(realMargin)}) nhưng là khách VIP.`; }
+                            } else {
+                                status = 'RED_STOP'; recommendation = 'TỪ CHỐI (LỖ/BIÊN THẤP)'; reason = `Lãi thực (${formatPercent(realMargin)}) không đạt kỳ vọng.`;
+                            }
+                        }
+                    }
+                }
+
+                setMetrics({ revenue: totalRevenue, accountingProfit, realProfit, realMargin, sunkCost, sunkCostRatio, volumeChangeRatio, avgSellPrice, avgHistoricalCost, avgReplacementCost, avgCompetitorPrice, status, recommendation, reason, warningLevel, competitorStatus, totalAdditionalCosts });
+            }, [inputs, products]);
+
+            React.useEffect(() => {
+                const total = Math.round(metrics.revenue * 1.1);
+                if (total > 0 && inputs.amountInWords === '') {
+                    setInputs(prev => ({...prev, amountInWords: `(Gợi ý: ${formatCurrency(total)} - Viết lại bằng chữ tại đây)`}));
+                }
+            }, [metrics.revenue]);
+
+            const handleCurrencyInputChange = (e) => { const { name, value } = e.target; setInputs(prev => ({ ...prev, [name]: parseVNCurrency(value) })); };
+            const handleInputChange = (e) => {
+                const { name, value } = e.target;
+                const numericFields = ['inventoryAge', 'interestRateYear', 'riskProvision', 'paymentDays'];
+                setInputs(prev => ({ ...prev, [name]: numericFields.includes(name) ? (value === '' ? 0 : parseFloat(value)) : value }));
+            };
+
+            const handlePrintPAKD = () => { setPrintMode('pakd'); setTimeout(() => window.print(), 200); };
+            const handlePrintQuote = () => { setPrintMode('quotation'); setTimeout(() => window.print(), 200); };
+            React.useEffect(() => { const handleAfterPrint = () => setPrintMode(null); window.addEventListener("afterprint", handleAfterPrint); return () => window.removeEventListener("afterprint", handleAfterPrint); }, []);
+
+            React.useEffect(() => {
+                try {
+                    const raw = localStorage.getItem(PAKD77_STORAGE_KEY);
+                    const parsed = raw ? JSON.parse(raw) : [];
+                    setSavedRecords(Array.isArray(parsed) ? parsed : []);
+                } catch {
+                    setSavedRecords([]);
+                }
+            }, []);
+
+            const persistRecords = (next) => {
+                setSavedRecords(next);
+                localStorage.setItem(PAKD77_STORAGE_KEY, JSON.stringify(next));
+            };
+
+            const saveCurrentPAKD = () => {
+                const companyName = (inputs.customerName || '').trim();
+                if (!companyName) {
+                    alert('Vui lòng nhập tên công ty trước khi lưu.');
+                    return;
+                }
+                const rec = {
+                    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                    companyName,
+                    senderName: inputs.senderName || '',
+                    createdAt: new Date().toISOString(),
+                    inputs,
+                    products
+                };
+                persistRecords([rec, ...savedRecords]);
+            };
+
+            const loadPAKD = (id) => {
+                const rec = savedRecords.find(x => x.id === id);
+                if (!rec) return;
+                setInputs(rec.inputs);
+                setProducts(rec.products);
+            };
+
+            const deletePAKD = (id) => {
+                const next = savedRecords.filter(x => x.id !== id);
+                persistRecords(next);
+            };
+
+            const exportPAKD = () => {
+                const blob = new Blob([JSON.stringify(savedRecords, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pakd77-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const importPAKD = (e) => {
+                const file = e && e.target && e.target.files ? e.target.files[0] : null;
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    try {
+                        const parsed = JSON.parse(reader.result);
+                        if (!Array.isArray(parsed)) throw new Error('invalid');
+                        persistRecords(parsed);
+                    } catch {
+                        alert('File JSON không hợp lệ.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const normalizedFilter = historyFilter.trim().toLowerCase();
+            const filteredRecords = savedRecords.filter(r => {
+                if (!normalizedFilter) return true;
+                return (r.companyName || '').toLowerCase().includes(normalizedFilter);
+            });
+
+            const getStatusStyle = (status) => {
+                switch (status) {
+                    case 'GREEN': return 'bg-green-50 border-green-500 text-green-800';
+                    case 'BLUE': return 'bg-blue-50 border-blue-500 text-blue-800';
+                    case 'YELLOW_CAPITAL': case 'YELLOW_APPROVE': return 'bg-yellow-50 border-yellow-500 text-yellow-800';
+                    case 'PURPLE': return 'bg-purple-100 border-purple-600 text-purple-900 animate-pulse-slow';
+                    default: return 'bg-red-50 border-red-500 text-red-800';
+                }
+            };
+            const getIcon = (status) => {
+                if (status === 'GREEN') return <CheckCircle className="w-12 h-12 text-green-600" />;
+                if (status === 'BLUE') return <Layers className="w-12 h-12 text-blue-600" />;
+                if (status.includes('YELLOW')) return <Award className="w-12 h-12 text-yellow-600" />;
+                if (status === 'PURPLE') return <Siren className="w-12 h-12 text-purple-600 animate-bounce" />;
+                return <XCircle className="w-12 h-12 text-red-600" />;
+            };
+
+            return (
+                <div>
+                    <div className={`min-h-screen bg-slate-50 text-slate-800 font-sans pb-12 ${printMode ? 'no-print' : ''}`}>
+                        <header className="bg-blue-900 text-white shadow-lg sticky top-0 z-50">
+                            <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
+                                <div><h1 className="text-xl md:text-2xl font-bold uppercase tracking-wider flex items-center gap-2"><Calculator className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" /> PAKD 7.7 - Dual Print (Khôi phục)</h1><p className="text-[11px] text-blue-100 mt-1 no-print">Build: {PAKD77_BUILD}</p></div>
+                                <div className="flex gap-2">
+                                    <button onClick={handlePrintPAKD} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded flex items-center gap-2 text-sm"><FileText className="w-4 h-4" /> In PAKD (Sếp)</button>
+                                    <button onClick={handlePrintQuote} className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-bold py-2 px-3 rounded flex items-center gap-2 text-sm"><Printer className="w-4 h-4" /> In Báo Giá (Khách)</button>
+                                </div>
+                            </div>
+                        </header>
+
+                        <main className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 lg:grid-cols-12 gap-8">
+                            <div className="lg:col-span-6 space-y-6">
+                                <div className="bg-white rounded-xl shadow-md border border-gray-200 overflow-hidden">
+                                    <div className="bg-gray-100 px-5 py-3 border-b border-gray-200 flex justify-between items-center">
+                                        <h2 className="font-bold text-gray-700 flex items-center gap-2 text-sm uppercase"><RefreshCcw className="w-4 h-4 text-blue-600" /> 1. Danh sách Hàng hóa</h2>
+                                        <button onClick={addProduct} className="text-xs bg-blue-600 text-white px-2 py-1 rounded flex items-center gap-1 hover:bg-blue-700"><Plus className="w-3 h-3"/> Thêm dòng</button>
+                                    </div>
+                                    <div className="p-3 space-y-4 max-h-[500px] overflow-y-auto">
+                                        {products.map((prod, idx) => (
+                                            <div key={prod.id} className="border border-gray-200 rounded-lg p-3 bg-gray-50 relative group">
+                                                <div className="absolute top-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity"><button onClick={() => removeProduct(prod.id)} className="text-red-500 hover:text-red-700"><Trash className="w-4 h-4"/></button></div>
+                                                <div className="grid grid-cols-12 gap-2 mb-2">
+                                                    <div className="col-span-1 flex items-center justify-center font-bold text-gray-400">#{idx + 1}</div>
+                                                    <div className="col-span-7"><label className="text-[10px] uppercase font-bold text-gray-500">Tên hàng</label><input type="text" value={prod.name} onChange={(e) => updateProduct(prod.id, 'name', e.target.value)} className="w-full border rounded px-2 py-1 text-sm font-medium" /></div>
+                                                    <div className="col-span-4"><label className="text-[10px] uppercase font-bold text-gray-500">Kích thước</label><input type="text" value={prod.specs} onChange={(e) => updateProduct(prod.id, 'specs', e.target.value)} className="w-full border rounded px-2 py-1 text-sm" /></div>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2 mb-2">
+                                                    <div><label className="text-[10px] text-gray-500">Khối lượng (Kg)</label><input type="number" value={prod.quantity} onChange={(e) => updateProduct(prod.id, 'quantity', parseFloat(e.target.value)||0)} className="w-full border rounded px-2 py-1 text-sm font-mono"/></div>
+                                                    <div><label className="text-[10px] text-blue-600 font-bold">Giá Bán</label><input type="text" value={prod.sellPrice ? new Intl.NumberFormat('vi-VN').format(prod.sellPrice) : ''} onChange={(e) => updateProduct(prod.id, 'sellPrice', parseVNCurrency(e.target.value))} className="w-full border-2 border-blue-400 rounded px-2 py-1 text-sm font-bold text-blue-700" /></div>
+                                                    <div><label className="text-[10px] text-orange-600 font-bold">Giá Đối Thủ</label><input type="text" value={prod.competitorPrice ? new Intl.NumberFormat('vi-VN').format(prod.competitorPrice) : ''} onChange={(e) => updateProduct(prod.id, 'competitorPrice', parseVNCurrency(e.target.value))} className="w-full border border-orange-200 bg-orange-50 rounded px-2 py-1 text-sm text-orange-800" /></div>
+                                                </div>
+                                                <div className="grid grid-cols-3 gap-2 bg-white p-2 rounded border border-dashed">
+                                                    <div><label className="text-[10px] text-gray-400">Giá Vốn</label><input type="text" value={prod.historicalCost ? new Intl.NumberFormat('vi-VN').format(prod.historicalCost) : ''} onChange={(e) => updateProduct(prod.id, 'historicalCost', parseVNCurrency(e.target.value))} className="w-full border bg-gray-50 rounded px-2 py-1 text-xs"/></div>
+                                                    <div><label className="text-[10px] text-purple-400 font-bold">Giá Thay thế</label><input type="text" value={prod.replacementCost ? new Intl.NumberFormat('vi-VN').format(prod.replacementCost) : ''} onChange={(e) => updateProduct(prod.id, 'replacementCost', parseVNCurrency(e.target.value))} className="w-full border border-purple-200 bg-purple-50 rounded px-2 py-1 text-xs font-medium text-purple-700"/></div>
+                                                    <div><label className="text-[10px] text-gray-500">ĐVT / SL</label><div className="flex gap-1"><input type="text" value={prod.unit} onChange={(e) => updateProduct(prod.id, 'unit', e.target.value)} className="w-1/2 border rounded px-1 py-1 text-xs"/><input type="number" value={prod.qtyUnit} onChange={(e) => updateProduct(prod.id, 'qtyUnit', e.target.value)} className="w-1/2 border rounded px-1 py-1 text-xs text-center"/></div></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-md border border-indigo-200 overflow-hidden">
+                                    <div className="bg-indigo-50 px-5 py-3 border-b border-indigo-200"><h2 className="font-bold text-indigo-800 flex items-center gap-2 text-sm uppercase"><FileText className="w-4 h-4" /> Cấu hình In Báo Giá</h2></div>
+                                    <div className="p-5 space-y-3">
+                                        <input type="text" name="customerName" value={inputs.customerName} onChange={handleInputChange} className="w-full border rounded px-2 py-1 text-sm font-bold" />
+                                        <input type="text" name="senderName" value={inputs.senderName} onChange={handleInputChange} className="w-full border rounded px-2 py-1 text-sm" />
+                                        <div><label className="text-xs text-gray-500">Tiền bằng chữ</label><textarea name="amountInWords" value={inputs.amountInWords} onChange={handleInputChange} className="w-full border rounded px-2 py-1 text-sm h-12 bg-yellow-50"></textarea></div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-md border border-emerald-200 overflow-hidden no-print">
+                                    <div className="bg-emerald-50 px-5 py-3 border-b border-emerald-200"><h2 className="font-bold text-emerald-800 flex items-center gap-2 text-sm uppercase"><History className="w-4 h-4" /> Lưu & Tải PAKD theo công ty</h2></div>
+                                    <div className="p-5 space-y-3">
+                                        <div className="text-xs text-slate-500">Lưu nguyên trạng PAKD 7.7 (inputs + danh sách hàng) theo tên công ty ngay trên trình duyệt.</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button onClick={saveCurrentPAKD} className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded">Lưu PAKD hiện tại</button>
+                                            <button onClick={exportPAKD} className="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3 rounded">Xuất JSON</button>
+                                            <button onClick={() => fileInputRef.current?.click()} className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded">Nhập JSON</button>
+                                            <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={importPAKD} />
+                                        </div>
+                                        <input value={historyFilter} onChange={(e) => setHistoryFilter(e.target.value)} placeholder="Lọc theo tên công ty..." className="w-full border rounded px-2 py-1 text-sm" />
+                                        <div className="max-h-64 overflow-auto border rounded">
+                                            <table className="w-full text-xs">
+                                                <thead className="bg-slate-100 sticky top-0">
+                                                    <tr>
+                                                        <th className="p-2 text-left">Ngày</th><th className="p-2 text-left">Công ty</th><th className="p-2 text-left">Thao tác</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredRecords.length === 0 ? (
+                                                        <tr><td className="p-2 text-slate-500" colSpan="3">Chưa có dữ liệu lưu.</td></tr>
+                                                    ) : filteredRecords.map(rec => (
+                                                        <tr key={rec.id} className="border-t">
+                                                            <td className="p-2">{new Date(rec.createdAt).toLocaleString('vi-VN')}</td>
+                                                            <td className="p-2"><div className="font-semibold">{rec.companyName}</div><div className="text-[10px] text-slate-500">{rec.senderName || '-'}</div></td>
+                                                            <td className="p-2 whitespace-nowrap">
+                                                                <button onClick={() => loadPAKD(rec.id)} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded mr-1">Nạp</button>
+                                                                <button onClick={() => deletePAKD(rec.id)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Xóa</button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="lg:col-span-6 space-y-6">
+                                <div className={`rounded-xl shadow-lg border-2 overflow-hidden transition-all duration-300 ${getStatusStyle(metrics.status)}`}>
+                                    <div className="p-6 flex flex-col md:flex-row items-center gap-6">
+                                        <div className="flex-shrink-0">{getIcon(metrics.status)}</div>
+                                        <div className="flex-1 text-center md:text-left">
+                                            <div className="text-xs font-bold uppercase tracking-widest opacity-60 mb-1">Hệ thống khuyến nghị (TỔNG ĐƠN):</div>
+                                            <h3 className="text-2xl font-bold mb-2 uppercase tracking-tight">{metrics.recommendation}</h3>
+                                            <div className="text-sm md:text-base font-medium opacity-90 space-y-1"><p>➤ {metrics.reason}</p></div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white p-5 rounded-xl shadow-sm border border-gray-200">
+                                    <h4 className="text-xs font-bold text-gray-500 uppercase mb-3 flex items-center gap-2"><TrendingUp className="w-4 h-4 text-blue-600" /> Trực quan hóa vị thế giá (Bình quân)</h4>
+                                    <div className="text-sm">Lợi nhuận thực: <strong>{formatCurrency(metrics.realProfit)}</strong> ({formatPercent(metrics.realMargin)})</div>
+                                    <div className="text-sm">Lãi vay đã mất: <strong>-{formatCurrency(metrics.sunkCost)}</strong></div>
+                                    <div className="text-sm">Thay đổi vốn hiện vật: <strong>{metrics.volumeChangeRatio > 0 ? '-' : '+'}{formatPercent(Math.abs(metrics.volumeChangeRatio))}</strong></div>
+                                    <PakdManualLink />
+                                </div>
+                            </div>
+                        </main>
+                    </div>
+
+                    {printMode === 'quotation' && <QuotationPrint inputs={inputs} metrics={metrics} productList={products} printMode={printMode} />}
+                    {printMode === 'pakd' && <PAKDReportPrint inputs={inputs} metrics={metrics} productList={products} printMode={printMode} />}
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<PAKD_App />);
+    </script>
+</body>
+</html>
