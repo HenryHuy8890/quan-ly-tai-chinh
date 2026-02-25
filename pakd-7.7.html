@@ -51,6 +51,9 @@
     <script type="text/babel">
         const PAKD77_STORAGE_KEY = "pakd77_history_v1";
         const PAKD77_BUILD = "2026-02-25-hookfix-v2";
+        const { useState, useEffect, useRef } = React;
+        const PAKD77_STORAGE_KEY = "pakd77_history_v1";
+        const { useState, useEffect } = React;
 
         const parseVNCurrency = (val) => {
             if (!val) return 0;
@@ -148,6 +151,11 @@
             ]);
 
             const [inputs, setInputs] = React.useState({
+            const [products, setProducts] = useState([
+                { id: 1, name: 'Nhôm cuộn A3003-H14', specs: '2.0 x 1250 x C', unit: 'Cuộn', qtyUnit: 1, quantity: 2591, sellPrice: 101000, historicalCost: 91000, replacementCost: 110000, competitorPrice: 100000 }
+            ]);
+
+            const [inputs, setInputs] = useState({
                 customerName: 'CÔNG TY TNHH BUTRACO VIỆT NAM', customerRank: 'VIP', buyFrequency: 'REGULAR',
                 inventoryAge: 7, interestRateYear: 7.6, riskProvision: 1.5, paymentDays: 30,
                 costTransport: 0, costProcessing: 0, costPackaging: 0,
@@ -159,6 +167,7 @@
             });
 
             const [metrics, setMetrics] = React.useState({
+            const [metrics, setMetrics] = useState({
                 revenue: 0, accountingProfit: 0, realProfit: 0, realMargin: 0,
                 sunkCost: 0, sunkCostRatio: 0, volumeChangeRatio: 0,
                 avgSellPrice: 0, avgHistoricalCost: 0, avgReplacementCost: 0, avgCompetitorPrice: 0,
@@ -169,6 +178,10 @@
             const [savedRecords, setSavedRecords] = React.useState([]);
             const [historyFilter, setHistoryFilter] = React.useState("");
             const fileInputRef = React.useRef(null);
+            const [printMode, setPrintMode] = useState(null);
+            const [savedRecords, setSavedRecords] = useState([]);
+            const [historyFilter, setHistoryFilter] = useState("");
+            const fileInputRef = useRef(null);
 
             const addProduct = () => {
                 const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
@@ -178,6 +191,7 @@
             const updateProduct = (id, field, value) => { setProducts(products.map(p => p.id === id ? { ...p, [field]: value } : p)); };
 
             React.useEffect(() => {
+            useEffect(() => {
                 const { inventoryAge, interestRateYear, riskProvision, paymentDays, customerRank, costTransport, costProcessing, costPackaging } = inputs;
                 let totalRevenue = 0, totalCogsHistory = 0, totalReplacementCost = 0, totalCompetitorVal = 0, totalQuantity = 0;
                 let volumeLossWeighted = 0, replacementBase = 0;
@@ -233,6 +247,7 @@
             }, [inputs, products]);
 
             React.useEffect(() => {
+            useEffect(() => {
                 const total = Math.round(metrics.revenue * 1.1);
                 if (total > 0 && inputs.amountInWords === '') {
                     setInputs(prev => ({...prev, amountInWords: `(Gợi ý: ${formatCurrency(total)} - Viết lại bằng chữ tại đây)`}));
@@ -251,6 +266,9 @@
             React.useEffect(() => { const handleAfterPrint = () => setPrintMode(null); window.addEventListener("afterprint", handleAfterPrint); return () => window.removeEventListener("afterprint", handleAfterPrint); }, []);
 
             React.useEffect(() => {
+            useEffect(() => { const handleAfterPrint = () => setPrintMode(null); window.addEventListener("afterprint", handleAfterPrint); return () => window.removeEventListener("afterprint", handleAfterPrint); }, []);
+
+            useEffect(() => {
                 try {
                     const raw = localStorage.getItem(PAKD77_STORAGE_KEY);
                     const parsed = raw ? JSON.parse(raw) : [];
@@ -306,6 +324,7 @@
 
             const importPAKD = (e) => {
                 const file = e && e.target && e.target.files ? e.target.files[0] : null;
+                const file = e.target.files?.[0];
                 if (!file) return;
                 const reader = new FileReader();
                 reader.onload = () => {
@@ -349,6 +368,7 @@
                         <header className="bg-blue-900 text-white shadow-lg sticky top-0 z-50">
                             <div className="max-w-7xl mx-auto px-4 py-4 flex justify-between items-center">
                                 <div><h1 className="text-xl md:text-2xl font-bold uppercase tracking-wider flex items-center gap-2"><Calculator className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" /> PAKD 7.7 - Dual Print (Khôi phục)</h1><p className="text-[11px] text-blue-100 mt-1 no-print">Build: {PAKD77_BUILD}</p></div>
+                                <div><h1 className="text-xl md:text-2xl font-bold uppercase tracking-wider flex items-center gap-2"><Calculator className="w-6 h-6 md:w-8 md:h-8 text-yellow-400" /> PAKD 7.7 - Dual Print (Khôi phục)</h1></div>
                                 <div className="flex gap-2">
                                     <button onClick={handlePrintPAKD} className="bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2 px-3 rounded flex items-center gap-2 text-sm"><FileText className="w-4 h-4" /> In PAKD (Sếp)</button>
                                     <button onClick={handlePrintQuote} className="bg-yellow-500 hover:bg-yellow-600 text-blue-900 font-bold py-2 px-3 rounded flex items-center gap-2 text-sm"><Printer className="w-4 h-4" /> In Báo Giá (Khách)</button>
