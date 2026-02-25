@@ -49,6 +49,8 @@
     <div id="root"></div>
 
     <script type="text/babel">
+        const { useState, useEffect, useRef } = React;
+        const PAKD77_STORAGE_KEY = "pakd77_history_v1";
         const { useState, useEffect } = React;
 
         const parseVNCurrency = (val) => {
@@ -165,6 +167,9 @@
             });
 
             const [printMode, setPrintMode] = useState(null);
+            const [savedRecords, setSavedRecords] = useState([]);
+            const [historyFilter, setHistoryFilter] = useState("");
+            const fileInputRef = useRef(null);
 
             const addProduct = () => {
                 const newId = products.length > 0 ? Math.max(...products.map(p => p.id)) + 1 : 1;
@@ -246,6 +251,82 @@
             const handlePrintQuote = () => { setPrintMode('quotation'); setTimeout(() => window.print(), 200); };
             useEffect(() => { const handleAfterPrint = () => setPrintMode(null); window.addEventListener("afterprint", handleAfterPrint); return () => window.removeEventListener("afterprint", handleAfterPrint); }, []);
 
+            useEffect(() => {
+                try {
+                    const raw = localStorage.getItem(PAKD77_STORAGE_KEY);
+                    const parsed = raw ? JSON.parse(raw) : [];
+                    setSavedRecords(Array.isArray(parsed) ? parsed : []);
+                } catch {
+                    setSavedRecords([]);
+                }
+            }, []);
+
+            const persistRecords = (next) => {
+                setSavedRecords(next);
+                localStorage.setItem(PAKD77_STORAGE_KEY, JSON.stringify(next));
+            };
+
+            const saveCurrentPAKD = () => {
+                const companyName = (inputs.customerName || '').trim();
+                if (!companyName) {
+                    alert('Vui lòng nhập tên công ty trước khi lưu.');
+                    return;
+                }
+                const rec = {
+                    id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+                    companyName,
+                    senderName: inputs.senderName || '',
+                    createdAt: new Date().toISOString(),
+                    inputs,
+                    products
+                };
+                persistRecords([rec, ...savedRecords]);
+            };
+
+            const loadPAKD = (id) => {
+                const rec = savedRecords.find(x => x.id === id);
+                if (!rec) return;
+                setInputs(rec.inputs);
+                setProducts(rec.products);
+            };
+
+            const deletePAKD = (id) => {
+                const next = savedRecords.filter(x => x.id !== id);
+                persistRecords(next);
+            };
+
+            const exportPAKD = () => {
+                const blob = new Blob([JSON.stringify(savedRecords, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `pakd77-backup-${new Date().toISOString().slice(0, 10)}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+            };
+
+            const importPAKD = (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = () => {
+                    try {
+                        const parsed = JSON.parse(reader.result);
+                        if (!Array.isArray(parsed)) throw new Error('invalid');
+                        persistRecords(parsed);
+                    } catch {
+                        alert('File JSON không hợp lệ.');
+                    }
+                };
+                reader.readAsText(file);
+            };
+
+            const normalizedFilter = historyFilter.trim().toLowerCase();
+            const filteredRecords = savedRecords.filter(r => {
+                if (!normalizedFilter) return true;
+                return (r.companyName || '').toLowerCase().includes(normalizedFilter);
+            });
+
             const getStatusStyle = (status) => {
                 switch (status) {
                     case 'GREEN': return 'bg-green-50 border-green-500 text-green-800';
@@ -313,6 +394,43 @@
                                         <input type="text" name="customerName" value={inputs.customerName} onChange={handleInputChange} className="w-full border rounded px-2 py-1 text-sm font-bold" />
                                         <input type="text" name="senderName" value={inputs.senderName} onChange={handleInputChange} className="w-full border rounded px-2 py-1 text-sm" />
                                         <div><label className="text-xs text-gray-500">Tiền bằng chữ</label><textarea name="amountInWords" value={inputs.amountInWords} onChange={handleInputChange} className="w-full border rounded px-2 py-1 text-sm h-12 bg-yellow-50"></textarea></div>
+                                    </div>
+                                </div>
+
+                                <div className="bg-white rounded-xl shadow-md border border-emerald-200 overflow-hidden no-print">
+                                    <div className="bg-emerald-50 px-5 py-3 border-b border-emerald-200"><h2 className="font-bold text-emerald-800 flex items-center gap-2 text-sm uppercase"><History className="w-4 h-4" /> Lưu & Tải PAKD theo công ty</h2></div>
+                                    <div className="p-5 space-y-3">
+                                        <div className="text-xs text-slate-500">Lưu nguyên trạng PAKD 7.7 (inputs + danh sách hàng) theo tên công ty ngay trên trình duyệt.</div>
+                                        <div className="flex flex-wrap gap-2">
+                                            <button onClick={saveCurrentPAKD} className="bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold py-2 px-3 rounded">Lưu PAKD hiện tại</button>
+                                            <button onClick={exportPAKD} className="bg-slate-700 hover:bg-slate-800 text-white text-xs font-bold py-2 px-3 rounded">Xuất JSON</button>
+                                            <button onClick={() => fileInputRef.current?.click()} className="bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold py-2 px-3 rounded">Nhập JSON</button>
+                                            <input ref={fileInputRef} type="file" accept="application/json" className="hidden" onChange={importPAKD} />
+                                        </div>
+                                        <input value={historyFilter} onChange={(e) => setHistoryFilter(e.target.value)} placeholder="Lọc theo tên công ty..." className="w-full border rounded px-2 py-1 text-sm" />
+                                        <div className="max-h-64 overflow-auto border rounded">
+                                            <table className="w-full text-xs">
+                                                <thead className="bg-slate-100 sticky top-0">
+                                                    <tr>
+                                                        <th className="p-2 text-left">Ngày</th><th className="p-2 text-left">Công ty</th><th className="p-2 text-left">Thao tác</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    {filteredRecords.length === 0 ? (
+                                                        <tr><td className="p-2 text-slate-500" colSpan="3">Chưa có dữ liệu lưu.</td></tr>
+                                                    ) : filteredRecords.map(rec => (
+                                                        <tr key={rec.id} className="border-t">
+                                                            <td className="p-2">{new Date(rec.createdAt).toLocaleString('vi-VN')}</td>
+                                                            <td className="p-2"><div className="font-semibold">{rec.companyName}</div><div className="text-[10px] text-slate-500">{rec.senderName || '-'}</div></td>
+                                                            <td className="p-2 whitespace-nowrap">
+                                                                <button onClick={() => loadPAKD(rec.id)} className="bg-blue-600 hover:bg-blue-700 text-white px-2 py-1 rounded mr-1">Nạp</button>
+                                                                <button onClick={() => deletePAKD(rec.id)} className="bg-red-600 hover:bg-red-700 text-white px-2 py-1 rounded">Xóa</button>
+                                                            </td>
+                                                        </tr>
+                                                    ))}
+                                                </tbody>
+                                            </table>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
